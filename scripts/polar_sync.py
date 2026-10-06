@@ -22,8 +22,32 @@ from that single recorded sequence — so ball, labels and (via the
 ``gesture_idx`` mapping) the sagittal panel are synchronized by
 construction.
 
-Display geometry (arXiv:2307.02299 §2.1): z_v arcs K=30, nu=+1;
-z_c sub-arcs K=10, nu=-1.
+Display geometry (arXiv:2307.02299 §2.1, Eq. 2): z_v arcs K=30,
+z_c sub-arcs K=10; per-branch display nu convention
+**nu_v = −1, nu_c = +1** (article planning-figure convention —
+author-validated 2026-10-06; the historical +1/−1 produced mirrored
+bows on BOTH branches).
+
+nu sign convention — IMPORTANT (keep in sync with polar_primitives.py
+and covtl-pipeline's vtl_synth/video/polar_video.py, which must be
+treated SEPARATELY):
+
+  * The synthSYL ENGINE (synthSYL/polar.py ``arc_B``,
+    ``cos(Ψ2 − θ2 − (ν/K)·θ(t))``) is VERBATIM Eq. 2 of
+    arXiv:2307.02299 (``e^{i(θ2 + (ν/K)θ(t))}`` — same sign), running
+    the single engine value ν = −1 on every arc (vowel backgrounds and
+    consonant sub-arcs alike). There is NO notational flip in the
+    synthSYL engine.
+  * covtl-pipeline's active ``syl`` engine, by contrast, writes the
+    cosine with the OPPOSITE sign, so its ν = −1 is numerically
+    equivalent to Eq. 2 with ν = +1 (see the covtl manual, §5: "this
+    is a notational convention only — ν = 1 is recovered when the
+    cosine is written with the opposite sign"). The reference display
+    values (Kc = 10, Kv = 30, ν = 1) belong to that engine family.
+  * Consequence: display ν values are NOT transferable between the two
+    engines. On the synthSYL side the per-branch display ν (−1, +1)
+    follows the article's planning FIGURES, which is a display
+    convention and does not mirror the engine's driven arcs.
 """
 from __future__ import annotations
 
@@ -141,7 +165,7 @@ def record_pipeline(pipeline_fn, blocks_out: list, **pipeline_kwargs):
 def build_branches(blocks: List[dict], n_steps: int,
                    t_step_ms: float = 10.0, sr_display: float = 1000.0,
                    k_v: float = 30.0, k_c: float = 10.0,
-                   nu_v: int = 1, nu_c: int = -1):
+                   nu_v: int = -1, nu_c: int = 1):
     """(z_v, z_c, disp_len) sampled at ``sr_display`` from the blocks.
 
     z_c is non-NaN exactly over cluster blocks, sub-arc by sub-arc

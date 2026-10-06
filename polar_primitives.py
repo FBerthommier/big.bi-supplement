@@ -9,6 +9,18 @@ Curvature convention (arXiv:2307.02299 §2.1): K = 30 for vowel arcs
 (z_v, "Kvoy") and K = 10 for consonant arcs (z_c). The default below
 is the vocalic value; consonant callers pass K=10 explicitly.
 
+nu sign convention (Eq. 2 of arXiv:2307.02299: the arrival point
+carries the phase θ2 + (ν/K)·θ(t) — PLUS sign): ``polar_arc`` below
+and synthSYL's engine ``arc_B`` share that exact sign, so a nu value
+passed here is directly comparable to the engine's nu (synthSYL runs
+the single value nu = -1 on every arc; no notational flip). The
+per-branch DISPLAY nu used by the article's planning figures is
+nu_v = -1, nu_c = +1 (see scripts/polar_sync.py). NOTE:
+covtl-pipeline's active syl engine writes the cosine with the
+opposite sign (its nu=-1 is equivalent to Eq. 2 nu=+1) — display nu
+values are NOT transferable between the two engines; treat the two
+display engines separately.
+
 Reference:
   - arXiv:2307.02299 (Berthommier 2023, Eq. 2)
 """
