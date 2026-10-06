@@ -50,6 +50,30 @@ palatal /g/ ≈ 150° off): the reference figure uses a different polar
 target table (AP model / pantimit-family layout). Angular separations
 are nevertheless comparable (within ~20°).
 
+## Article-figure conditions (COEFCEN = 1, VOYDEB = 0.5)
+
+The article's Figure 4 was generated under the legacy parameters
+**COEFCEN = 1** and **VOYDEB = 0.5** — i.e. in synthSYL terms
+`delta_e = 1.0` (Ve = V: full vowel at the syllable end, no schwa on
+the coda side) and `delta_o = 0.5` (Vo at half radius: schwa-like
+onset anchor). This differs from the symmetric δo = δe = 0.5 used for
+the first comparison figure. Naming check: `types.py` maps
+`is_voydeb → is_vowel_onset` (VOYDEB = onset coefficient) and
+`constants.py` defines COEFCEN as the end/centre-weight coefficient.
+
+Under these conditions (`docs/figures/fig_bigbi_article_conditions.png`,
+T = 16, z_v K = 30 / z_c K = 10):
+
+| utterance | z_c gestures | apexes (θ, ρ) | red branch |
+|---|---|---|---|
+| `big.bi` | **3** (b → g → b) | (60°, 1.20) ; (345°, 1.10) palatal g ; (60°, 1.20) | ρ 0.45–0.90: schwa at word ONSETS (Vo), full V elsewhere (Ve = V) |
+| `bi.gbi` | **2** (b + fused /gb/) | (60°, 1.20) ; gb span visits g (345°, 1.10) then b | idem |
+
+The three-gesture vs two-gesture contrast (coda /g/ as a separate
+gesture in big.bi vs the single fused /gb/ cluster gesture in bi.gbi)
+is the §4 syllabification demonstration, now reproduced under the
+article's exact figure parameters.
+
 ## Limitations / next step
 
 The 472-px reference allows topology matching and target-layout
