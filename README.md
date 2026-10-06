@@ -122,6 +122,19 @@ This repository extends the original [timit-to-Maeda](https://github.com/FBertho
    - Fixed: `Vo = [delta_o * rho_V, theta_V]` (matches article formula)
    - At delta_o = 1.0, Vo = V (full vowel, fusion-ready)
 
+4. **Non-initial word onsets anchor on the previous Ve** (article §2.2:
+   the pause is the diphthong transition between the previous Ve and
+   the next Vo):
+   - Original: every word-start onset used `Vo = delta_o * rho_V`,
+     so a second schwa dip appeared at each word boundary even when
+     COEFCEN (delta_e) = 1.
+   - Fixed: for non-initial words, `Vo := (delta_e * rho_prev,
+     theta_prev)` — with COEFCEN = 1 the word-2 onset departs from the
+     full vowel and there is no return to the half-radius schwa at the
+     boundary; with the symmetric delta_o = delta_e the value is
+     unchanged (the "big@bi" schwa demonstrations are preserved, and
+     all reference reproductions remain bit-identical).
+
 ## The Model
 
 The model uses **VLAM** (a Maeda model) with **7 articulatory parameters**:

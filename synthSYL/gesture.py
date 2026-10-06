@@ -385,28 +385,48 @@ def _insert_word_end_anchors(anchors: list[GestureAnchor],
 def _insert_vowel_onset_anchors(anchors: list[GestureAnchor],
                                 nodes: list[GestureNode],
                                 word_starts: list[int] | None,
-                                delta_o: float = DEFAULT_DELTA_O) -> list[GestureAnchor]:
+                                delta_o: float = DEFAULT_DELTA_O,
+                                delta_e: float = DEFAULT_DELTA_E) -> list[GestureAnchor]:
     """Insert vowel-onset anchors (Vo) at word starts that begin with a consonant.
 
-    Vo = (delta_o * rho_vowel, theta_vowel) — Berthommier 2023 §2.2.
-    The original hardcoded 0.5 (which gave Vo_rho = 0.5 regardless of the
-    vowel) is replaced by ``delta_o * rho_V`` so that when delta_o -> 1,
-    Vo -> V (full vowel, fusion-ready). This matches the article's formula
-    Vo = (delta_o * rho_V, theta_V) and is symmetric with the Ve path
-    (which already used delta_e * rho_vowel).
+    Utterance-initial word: Vo = (delta_o * rho_V, theta_V) — Berthommier
+    2023 §2.2 (VOYDEB). The original hardcoded 0.5 (which gave Vo_rho = 0.5
+    regardless of the vowel) is replaced by ``delta_o * rho_V`` so that when
+    delta_o -> 1, Vo -> V (full vowel, fusion-ready). This matches the
+    article's formula Vo = (delta_o * rho_V, theta_V) and is symmetric with
+    the Ve path (which already used delta_e * rho_vowel).
+
+    Non-initial word (after a pause): the pause is the diphthong transition
+    between the PREVIOUS Ve and the next Vo (article §2.2), so the onset
+    anchors on the previous word's Ve point — Vo := (delta_e * rho_prev,
+    theta_prev). Consequences: with COEFCEN = 1 (delta_e = 1, Ve = V) the
+    word-2 onset departs from the FULL vowel and there is no return to the
+    half-radius schwa at the word boundary; with the symmetric
+    delta_o = delta_e the value is unchanged (0.45 for /i/), preserving the
+    "big@bi" schwa demonstrations. (Author-validated 2026-10-06.)
     """
     if not word_starts:
         return anchors
     n = len(nodes)
     inserts: list[tuple[int, GestureAnchor]] = []
-    for ws in word_starts:
+    for w_idx, ws in enumerate(word_starts):
         if ws < n and nodes[ws].kind == "C":
-            result = _find_next_vowel_rho_theta(nodes, ws)
-            if result is not None:
-                rho_v, theta_v = result
+            prev_v = None
+            if w_idx > 0:
+                for k in range(ws - 1, -1, -1):
+                    if nodes[k].kind == "V":
+                        prev_v = (nodes[k].rho, nodes[k].theta)
+                        break
+            if prev_v is not None:
+                rho_v, theta_v = delta_e * prev_v[0], prev_v[1]
             else:
-                rho_v, theta_v = 0.9, np.pi
-            vd = _make_vowel_anchor(ws, [delta_o * rho_v, theta_v], False,
+                result = _find_next_vowel_rho_theta(nodes, ws)
+                if result is not None:
+                    rho_v, theta_v = result
+                else:
+                    rho_v, theta_v = 0.9, np.pi
+                rho_v = delta_o * rho_v
+            vd = _make_vowel_anchor(ws, [rho_v, theta_v], False,
                                      is_vowel_onset=True)
             insert_pos = _find_anchor_insert_pos(anchors, ws)
             inserts.append((insert_pos, vd))
@@ -486,7 +506,8 @@ def build_gesture_anchors(nodes: list[GestureNode],
     """
     anchors = _create_base_anchors(nodes)
     anchors = _insert_word_end_anchors(anchors, nodes, delta_e=delta_e)
-    anchors = _insert_vowel_onset_anchors(anchors, nodes, word_starts, delta_o=delta_o)
+    anchors = _insert_vowel_onset_anchors(anchors, nodes, word_starts,
+                                          delta_o=delta_o, delta_e=delta_e)
     anchors = _insert_syllable_onset_anchors(anchors, syl_boundary_info, delta_o=delta_o)
     anchors = _ensure_terminal_anchors(anchors, len(nodes))
     return anchors

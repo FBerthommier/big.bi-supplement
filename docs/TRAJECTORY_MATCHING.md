@@ -136,6 +136,23 @@ PLUS sign):
   between the two engines; the convention note has been added to both
   display engines independently.
 
+### Word-2 onset anchoring under COEFCEN=1 (engine correction)
+
+Author's ruling (2026-10-06): under COEFCEN = 1 the "bi" of big.bi
+must NOT return to the half-radius schwa (0.45) at the word boundary —
+the article defines the pause as the diphthong between the PREVIOUS
+Ve and the next Vo, so a non-initial word onset anchors on the
+previous Ve. The engine previously applied `Vo = delta_o·rho` at every
+word start; `synthSYL/gesture.py` now uses
+`Vo := (delta_e·rho_prev, theta_prev)` for non-initial words.
+Verified: pause arc of "big bi" (COEFCEN=1, VOYDEB=0.5) is now the
+stationary hold (0.90→0.90), the word-2 /b/ departs from V=(0.90,
+300°), and the red branch dips below ρ=0.5 exactly ONCE (the
+utterance-initial Vo, t=0–220 ms). All reference reproductions remain
+bit-identical (0.000e+00) because every validated gate uses symmetric
+delta_o = delta_e, where the new formula gives the same value; the
+"big@bi" schwa demonstrations are preserved.
+
 ## Limitations / next step
 
 The 472-px reference allows topology matching and target-layout
