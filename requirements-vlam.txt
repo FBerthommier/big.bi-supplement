@@ -1,0 +1,19 @@
+# Optional dependencies for video generation / audio playback.
+# Install on top of requirements.txt:
+#   pip install -r requirements.txt -r requirements-vlam.txt
+#
+# Python >= 3.10
+
+# Video generation (VLAMvidmaker.py, scripts/make_*_video.py,
+# scripts/run_*_sweep.py): rendering + title bars. The ffmpeg binary
+# must also be on PATH for audio dubbing and concatenation.
+opencv-python>=4.9
+Pillow>=10.0
+
+# Audio playback via vlam.play_signal (optional, not needed by the demos):
+# sounddevice>=0.4.1
+# Mel spectrograms via vlam.plot_spectrogram (optional, matplotlib
+# spectrograms are used by the demo scripts instead):
+# librosa>=0.10
+# TIMIT/ARPABET conversion CLI (synthSYL/panphon_adapter.py, optional):
+# nltk>=3.8

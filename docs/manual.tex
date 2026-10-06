@@ -1,0 +1,1240 @@
+\documentclass[11pt,a4paper]{article}
+
+% ── Packages ──
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{longtable}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{listings}
+\usepackage{needspace}
+\usepackage{hyperref}
+
+% ── Hyperref ──
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    citecolor=blue!50!black,
+    urlcolor=blue!70!black,
+    bookmarks=true,
+    bookmarksnumbered=true,
+    pdftitle={Didactic Manual: big.bi -> bi.gbi Articulatory Simulation},
+    pdfauthor={Super Z},
+    pdfsubject={Reproduction of arXiv:2307.02299 demonstrations},
+    pdfkeywords={articulatory synthesis, syllabification, Maeda model, VLAM, verbal transformation}
+}
+
+% ── Page style ──
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\itshape big.bi $\to$ bi.gbi --- Didactic Manual}
+\fancyhead[R]{\small v1.0}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% ── Section formatting ──
+\titleformat{\section}{\Large\bfseries\color{blue!50!black}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\large\bfseries\color{blue!40!black}}{\thesubsection}{0.5em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries}{\thesubsubsection}{0.4em}{}
+
+% ── Listings ──
+\definecolor{codebg}{HTML}{F5F5F5}
+\definecolor{codeframe}{HTML}{CCCCCC}
+\definecolor{codecomment}{HTML}{6A737D}
+\definecolor{codekeyword}{HTML}{D73A49}
+\definecolor{codestring}{HTML}{032F62}
+\lstdefinestyle{pythonstyle}{
+    backgroundcolor=\color{codebg}, frame=single,
+    rulecolor=\color{codeframe},
+    basicstyle=\ttfamily\footnotesize,
+    commentstyle=\color{codecomment}\itshape,
+    keywordstyle=\color{codekeyword}\bfseries,
+    stringstyle=\color{codestring},
+    showstringspaces=false, breaklines=true, breakatwhitespace=true,
+    numbers=none, xleftmargin=4pt, xrightmargin=4pt,
+    framexleftmargin=4pt, framexrightmargin=4pt,
+    language=Python,
+    morekeywords={panphon_pipeline, vlam, synthSYL, polar_arc, stationary_point}
+}
+\lstset{style=pythonstyle}
+
+% ── Paragraph spacing ──
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.45em}
+
+\begin{document}
+
+% ════════════════════════════════════════════════════════════════
+% Title page
+% ════════════════════════════════════════════════════════════════
+\begin{titlepage}
+\centering
+\vspace*{2cm}
+{\Huge\bfseries\color{blue!50!black}
+Didactic Manual\\[0.3em]
+\large big.bi $\to$ bi.gbi\\[0.5em]
+\normalsize Articulatory Simulation of the Verbal Transformation
+\par}
+\vspace{1.5cm}
+
+{\large
+Reproduction of the demonstrations described in\\[0.3em]
+\textit{``Why can big.bi be changed to bi.gbi?\\
+A mathematical model of syllabification and articulatory synthesis''}\\[0.3em]
+arXiv:2307.02299 (Berthommier, July 2023)
+\par}
+
+\vspace{2cm}
+
+\begin{tabular}{rl}
+\textbf{Model:} & VLAM (Maeda, 7 parameters) \\
+\textbf{Code:} & Python 3.9+ (MIT License) \\
+\textbf{Dependencies:} & numpy, scipy, matplotlib, opencv-python \\
+\textbf{Repository:} & \texttt{bigbi-article-repo} \\
+\end{tabular}
+
+\vfill
+
+{\small\itshape
+This manual provides step-by-step instructions for reproducing the
+verbal transformation simulations, including the polar trajectory
+visualization, the U-shaped Tp variation, and the comparison with
+the article's Figure~4.
+}
+
+\vspace{1cm}
+{\small Version 1.0 --- \today}
+\end{titlepage}
+
+% ════════════════════════════════════════════════════════════════
+% Table of contents
+% ════════════════════════════════════════════════════════════════
+\tableofcontents
+\newpage
+
+% ════════════════════════════════════════════════════════════════
+% Section 1: Introduction
+% ════════════════════════════════════════════════════════════════
+\section{Introduction}
+
+This manual documents the Python implementation of the articulatory
+speech synthesis model described in arXiv:2307.02299
+\cite{berthommier2023}. The model, based on VLAM (a Maeda
+articulatory synthesizer with 7 parameters), simulates the
+\textbf{verbal transformation} from \texttt{big.bi} to \texttt{bi.gbi}
+--- a phenomenon where the syllable boundary shifts as the pause
+between syllables is shortened and the anchoring vowels (Vo, Ve)
+approach the main vowel V.
+
+The article's central claim (\S4) is:
+\begin{quote}
+\itshape
+``When $\delta_o = \delta_e$ tends to 1 the graph reorganization
+can occur because two successive superimposed segments of duration
+$2 \times 2T$ anchored to the same vowel $V_o = V_e = V$ can fuse
+into a single one of duration $3T$.''
+\end{quote}
+
+This repository provides the code to reproduce this transformation
+step by step, with audio synthesis, polar trajectory visualization,
+and accessible video output.
+
+\subsection{What this repository provides}
+
+\begin{enumerate}[leftmargin=1.4em]
+\item The \texttt{synthSYL} package (modified from
+\href{https://github.com/FBerthommier/timit-to-Maeda}{FBerthommier/timit-to-Maeda})
+with the $\delta_o$ and $\delta_e$ parameters added to
+\texttt{panphon\_pipeline()}.
+
+\item The VLAM synthesizer (\texttt{vlam.py}) for audio generation
+from Maeda parameters.
+
+\item Simulation scripts for three demonstrations:
+  \begin{itemize}
+  \item \texttt{big.bi $\to$ bi.gbi} (the article's main result, \S4)
+  \item \texttt{ib ib $\to$ bi bi} (the classical transformation, \S3)
+  \item U-shaped $T_p$ variation for perceptual demonstration
+  \end{itemize}
+
+\item Polar trajectory reconstruction (two-branch: vocalic $z_v$
+and consonantal $z_c$), using primitives from
+\href{https://github.com/FBerthommier/covtl-pipeline}{FBerthommier/covtl-pipeline}.
+
+\item Dual-panel video generation (sagittal vocal tract | polar plot)
+with synchronized audio and phoneme labels.
+\end{enumerate}
+
+\subsection{The VLAM model}
+
+VLAM (Vocal tract Learner Articulatory Model) is the Maeda model
+with 7 articulatory parameters:
+\begin{center}
+\begin{tabular}{cll}
+\toprule
+\textbf{Index} & \textbf{Symbol} & \textbf{Description} \\
+\midrule
+0 & J  & Jaw opening \\
+1 & B  & Tongue body position \\
+2 & D  & Tongue dorsum height \\
+3 & T  & Tongue tip position \\
+4 & LP & Lip protrusion/rounding \\
+5 & LH & Vertical lip opening \\
+6 & Hy & Larynx height \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Indexing convention.} Two numbering conventions coexist and
+must not be mixed:
+\begin{itemize}
+\item the \textbf{article} numbers the parameters $1$--$7$
+  ($1$=Jaw, $2$=Body, $3$=Dorsum, $4$=Tip, $5$=LipP, $6$=LipH,
+  $7$=Hy); its selection vectors $S_c$ and $S_v$ (e.g.\
+  $S_c = \{1,2,6\}$) use this 1-based numbering;
+\item the \textbf{code} (and the table above) numbers them $0$--$6$;
+  the registry selection vectors are 0-based, e.g.\ /b/ has
+  \texttt{params=[0,1,5]}.
+\end{itemize}
+Correspondence: article $\{1,2,6\}$ = code $\{0,1,5\}$ = \{Jaw, Body,
+LipH\}; article $\{1,2,3,4\}$ = code $\{0,1,2,3\}$ = \{Jaw, Body,
+Dorsum, Tip\}; article $S_v = \{3,4,5,7\}$ = code $\{2,3,4,6\}$ =
+\{Dorsum, Tip, LipP, Hy\}. Throughout this manual, $S_c$/$S_v$ sets
+are quoted in the article's 1-based numbering (as in the article),
+while parameter indices mentioned in the text refer to the 0-based
+code indices unless stated otherwise.
+
+The coordination function (article Eq.~1) maps a polar target
+$(\rho, \theta)$ to the 7 Maeda parameters:
+\begin{equation}
+P_i = \Omega_i + \rho \cdot \Psi_{1,i} \cdot \cos(\Psi_{2,i} - \theta)
+\label{eq:coordination}
+\end{equation}
+
+where $\Omega$, $\Psi_1$, and $\Psi_2$ are calibration constants
+(article Table~1). The CO matrix in \texttt{synthSYL/constants.py}
+matches the article's Table~1 almost exactly (only the Tip parameter
+$c_0$ differs slightly: $-2.75$ in synthSYL vs $-3.0$ in the article).
+
+\subsection{Article parameters}
+
+The article (\S2.1) specifies the following arc parameters:
+\begin{itemize}
+\item $K_{\text{voy}} = 30$ --- vowel arc curvature
+\item $K = 10$ --- consonant arc curvature
+\item $P_{\text{exp}} = 1$ --- velocity profile exponent
+  ($\rho(t) = \cos(\theta(t)/2)$, not $\cos^2$)
+\item $T = 16$ --- time step (didactic mode)
+\item $\nu = -1$ --- coarticulation index
+\end{itemize}
+
+These are set in \texttt{synthSYL/constants.py}:
+\begin{lstlisting}
+DEFAULT_T: int = 16
+DEFAULT_K: int = 10        # consonant arc curvature
+DEFAULT_KVOY: int = 30     # vowel arc curvature
+DEFAULT_PEXP: int = 1      # velocity profile exponent
+DEFAULT_NU: int = -1
+\end{lstlisting}
+
+The article notes: \textit{``When $K$ is large ($K = 30$ for vowel
+arcs and $K = 10$ for consonant arcs), the trajectories become
+straight lines.''} With $P_{\text{exp}} = 1$, the velocity profile
+follows $\cos(\theta/2)$ (a cosine half-bell) rather than
+$\cos^2(\theta/2)$ (a Hanning window).
+
+\textbf{Note on display curvature:} The polar trajectory
+visualization uses $K = 30$ for both vocalic and consonantal branches
+(the covtl-pipeline reference display curvature), not the engine's
+$K = 10$ / $K_{\text{voy}} = 30$. This is a deliberate visualization
+choice that produces moderate, visible curvature for both branches.
+
+% ════════════════════════════════════════════════════════════════
+% Section 2: The Mathematical Model
+% ════════════════════════════════════════════════════════════════
+\section{The Mathematical Model}
+
+\subsection{Polar coordinates and targets}
+
+Each phoneme target is a point $(\rho, \theta)$ in the complex
+plane:
+\begin{itemize}
+\item \textbf{Vowels}: $\rho \in [0, 1]$, $\theta \in [0, 2\pi)$
+\item \textbf{Consonants}: $\rho \in [0, 1.2]$, $\theta \in [0, 2\pi)$
+\end{itemize}
+
+For example, the vowel /i/ is at $(\rho=0.9, \theta=5\pi/3)$ and the
+consonant /b/ is at $(\rho=1.2, \theta=\pi/3)$.
+
+\subsection{Arc trajectories}
+
+Motion between two targets $(\rho_1, \theta_1)$ and
+$(\rho_2, \theta_2)$ is produced by the arc function (article Eq.~2):
+\begin{equation}
+z(t) = (1 - r_k) \cdot \rho_1 e^{i\theta_1}
+     + r_k \cdot \rho_2 \cdot e^{i(\theta_2 + \frac{\nu}{K} \cdot \text{th})}
+\label{eq:arc}
+\end{equation}
+
+where $r_k = \cos^{P_{\text{exp}}}(\text{th}/2)$ is the velocity profile,
+$\text{th} \in [0, \pi]$ is a half-turn sweep, $\nu = \pm 1$
+controls the curvature direction, and $K$ is the curvature constant
+($K=30$ for display, $K=10$ for consonant arcs, $K_{\text{voy}}=30$
+for vowel arcs in the synthesis engine).
+
+\textbf{Important:} The article uses $P_{\text{exp}} = 1$, so
+$r_k = \cos(\text{th}/2)$ (a cosine half-bell, \textit{without} the
+power of 2). This is the form used for all demonstrations in this
+repository. The original \texttt{synthSYL} package used $P_{\text{exp}}
+= 2$ ($r_k = \cos^2(\text{th}/2)$, a Hanning window), which has been
+corrected to match the article.
+
+\subsection{Anchoring vowels: Vo and Ve}
+
+The article (\S2.2) introduces two anchoring vowels:
+\begin{align}
+V_o &= (\delta_o \cdot \rho_V, \theta_V) \\
+V_e &= (\delta_e \cdot \rho_V, \theta_V)
+\end{align}
+
+\begin{itemize}
+\item $V_o$ (onset): anticipation of the vowel before the consonant.
+  The value of $\delta_o$ determines the degree of anticipation.
+\item $V_e$ (end): centralization of the coda vowel (schwa-like
+  vocoid). Modeled with $\delta_e = 0.5$ (salient) or $\delta_e = 0.7$
+  (audible).
+\end{itemize}
+
+When $\delta_o = \delta_e \to 1$, both $V_o$ and $V_e$ approach $V$
+(the full vowel), enabling the fusion of adjacent syllable segments.
+
+\subsection{Superposition}
+
+The final parameter frame is a blend (article Eq.~4):
+\begin{equation}
+P(t) - \Omega = \text{Re}\left[ S_v \cdot \Psi \cdot \bar{z}_v(t)
+                              + S_c \cdot \Psi \cdot \bar{z}_c(t) \right]
+\end{equation}
+
+where $S_v$ and $S_c$ are selection vectors (binary masks over the
+7 parameters), $z_v(t)$ is the vocalic trajectory, and $z_c(t)$ is
+the consonantal trajectory.
+
+% ════════════════════════════════════════════════════════════════
+% Section 3: The Syllable Graph Architecture
+% ════════════════════════════════════════════════════════════════
+\section{The Syllable Graph Architecture}
+
+\subsection{CV graph}
+
+A CV syllable (e.g., /bi/) has 3 nodes and 4 arcs:
+\begin{itemize}
+\item Nodes: $V = \{V_o, C, V\}$
+\item Locations: $L = \{(\delta_o \rho_V, \theta_V),\;
+  (\rho_C, \theta_C),\;(\rho_V, \theta_V)\}$
+\item Arcs: $E = \{(V_o, C), (C, V), (V_e, V), (V, V)\}$
+\item Durations: $T_p = \{T_1, T_2, 2T_2, T\}$
+\end{itemize}
+
+\subsection{CVC graph}
+
+A CVC syllable (e.g., /big/) has 5 nodes, symmetric with respect to
+the CV graph:
+\begin{itemize}
+\item Nodes: $V = \{V_o, C_1, V, C_2, V_e\}$
+\item Locations: $L = \{(\delta_o \rho_V, \theta_V),\;
+  (\rho_{C_1}, \theta_{C_1}),\;(\rho_V, \theta_V),\;
+  (\rho_{C_2}, \theta_{C_2}),\;(\delta_e \rho_V, \theta_V)\}$
+\end{itemize}
+
+\subsection{CCV graph (clusters)}
+
+A CCV syllable (e.g., /gbi/) has 4 nodes and 5 arcs:
+\begin{itemize}
+\item Nodes: $V = \{V_o, C_1, C_2, V\}$
+\item Arcs: $E = \{(V_o, C_1), (C_1, C_2), (C_2, V), (V_e, V), (V, V)\}$
+\item The consonantal branch visits $C_1$ then $C_2$ in sequence.
+\end{itemize}
+
+\subsection{The fusion mechanism}
+
+The article (\S4) describes the fusion:
+\begin{quote}
+\itshape
+``When $\delta_o = \delta_e$ tends to 1 the graph reorganization
+can occur because two successive superimposed segments of duration
+$2 \times 2T$ anchored to the same vowel $V_o = V_e = V$ can fuse
+into a single one of duration $3T$.''
+\end{quote}
+
+The gain is twofold:
+\begin{enumerate}
+\item \textbf{Consonant clustering}: reduction of one period $T$
+  (from 2 separate consonant gestures to 1 fused cluster gesture).
+\item \textbf{Node loss}: the $V$ node between the two syllables
+  disappears (since $V_o = V_e = V$), reducing the graph complexity.
+\end{enumerate}
+
+Additionally, the selection vector switches (article's 1-based
+numbering; code indices subtract 1):
+\begin{itemize}
+\item Before fusion: $S_c = \{1,2,3,4\}$ for /g/ and $S_c = \{1,2,6\}$
+  for /b/ (two separate gestures)
+\item After fusion: $S_c = \{1,2,3,6\}$ for /gb/ (one fused gesture)
+\end{itemize}
+
+% ════════════════════════════════════════════════════════════════
+% Section 4: The delta parameters
+% ════════════════════════════════════════════════════════════════
+\section{The $\delta_o$ and $\delta_e$ Parameters}
+
+\subsection{Implementation}
+
+The $\delta_o$ and $\delta_e$ parameters are added to the
+\texttt{panphon\_pipeline()} function as optional keyword arguments:
+
+\begin{lstlisting}
+from synthSYL import panphon_pipeline
+
+result = panphon_pipeline(
+    "big bi",
+    T=16,
+    short_pause_duration_factor=1.0,
+    delta_o=0.5,   # Vo = (0.5 * rho_V, theta_V)
+    delta_e=0.5,   # Ve = (0.5 * rho_V, theta_V)
+)
+\end{lstlisting}
+
+The default values are $\delta_o = \delta_e = \texttt{COEFCEN} = 0.5$,
+preserving backward compatibility with the original package.
+
+\subsection{Effect on the anchoring vowels}
+
+Table~\ref{tab:delta} shows the effect of $\delta$ on the anchoring
+vowels for the vowel /i/ ($\rho_V = 0.9$, $\theta_V = 5\pi/3$):
+
+\begin{table}[h]
+\centering
+\caption{Effect of $\delta$ on $V_o$ and $V_e$ (for /i/)}
+\label{tab:delta}
+\begin{tabular}{cccc}
+\toprule
+$\delta$ & $V_o = V_e$ $\rho$ & Perception & Article term \\
+\midrule
+0.50 & 0.450 & Salient schwa @ & ``salient'' \\
+0.70 & 0.630 & Audible schwa   & ``audible'' \\
+0.85 & 0.765 & Residual schwa  & --- \\
+0.95 & 0.855 & $V_o \approx V_e \approx V$ & --- \\
+1.00 & 0.900 & $V_o = V_e = V$ (fusion) & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{The Ve plateau fix}
+
+A critical implementation detail: the article states that
+``$V_e$ is a NODE'' (\S2.2), meaning it should have its own plateau
+(like $V$), not just a decay transition. Without this plateau, the
+schwa-like vocoid is too brief to be perceived.
+
+In \texttt{trajectory.py}, the \texttt{\_handle\_b\_terminal()}
+function was modified to add a full-amplitude plateau before the
+decay block:
+
+\begin{lstlisting}
+elif A.kind == "V":
+    if B.kind == "pause":
+        pt_A = _safe_pt(A)
+        # Ve plateau (full-amplitude) BEFORE the decay block
+        if A.is_word_end:
+            _append_plateau(blocks, pt_A, T_voy)
+            block_info.append(BlockInfo(n_steps=T_voy, kind="plateau"))
+        _append_decay_block(blocks, block_info, pt_A, T_cons, pre_amp=1.0)
+\end{lstlisting}
+
+Without this fix, the decay envelope (Hanning$^3$) drops to 12\%
+amplitude in the first 25\% of the block, making the $V_e$ barely
+audible and the @ $\to$ /i/ transformation (when $\delta_e \to 1$)
+perceptually invisible.
+
+% ════════════════════════════════════════════════════════════════
+% Section 5: Reproduction Guide
+% ════════════════════════════════════════════════════════════════
+\section{Reproduction Guide}
+
+\subsection{Installation}
+
+\begin{lstlisting}[language=bash]
+# Clone the repository
+git clone https://github.com/<your-org>/bigbi-article-repo.git
+cd bigbi-article-repo
+
+# Install Python dependencies
+pip install -r requirements.txt
+
+# (Optional) Install ffmpeg for video generation
+sudo apt install ffmpeg  # Linux
+# brew install ffmpeg     # macOS
+\end{lstlisting}
+
+\subsection{Demonstration 1: big.bi $\to$ bi.gbi (Article \S4)}
+
+This is the main demonstration, showing the verbal transformation
+with $T=16$ (didactic mode), starting at $\delta = 0.50$ for a
+salient schwa @.
+
+\begin{lstlisting}[language=bash]
+# Run the sweep (14 segments: 11 "big bi" + 3 "bi.gbi")
+python scripts/run_bigbi_polar_sweep.py
+
+# Generate the dual-panel video (sagittal | polar)
+python scripts/make_bigbi_dual_video.py
+
+# Generate the self-contained HTML with embedded video
+python scripts/embed_video_in_html.py en
+\end{lstlisting}
+
+The output is in \texttt{download/bigbi\_polar\_sweep\_en\_v2/}:
+\begin{itemize}
+\item \texttt{dual/dual\_progressive.mp4} --- dual-panel video (1.5 MB)
+\item \texttt{polar/polar\_progressive.mp4} --- polar-only video (3.5 MB)
+\item \texttt{index\_embedded.html} --- self-contained HTML (6.5 MB)
+\end{itemize}
+
+\subsection{Demonstration 2: U-shaped $T_p$ variation}
+
+The U-shaped variation lets the listener clearly perceive:
+\texttt{ib ib} at the start $\to$ \texttt{bi bi} at the bottom
+(fusion) $\to$ \texttt{ib ib} again at the end.
+
+\begin{lstlisting}[language=bash]
+python scripts/run_ibbi_ushape_sweep.py
+\end{lstlisting}
+
+The 13 segments use $T_p$ values:
+\begin{center}
+\begin{tabular}{ccccccccccccc}
+\toprule
+Seg & 1--2 & 3 & 4 & 5 & 6 & \textbf{7} & 8 & 9 & 10 & 11 & 12--13 \\
+\midrule
+$T_p$ (ms) & 160 & 120 & 80 & 40 & 10 & \textbf{0} & 10 & 40 & 80 & 120 & 160 \\
+$\delta$   & 0.50 & 0.625 & 0.75 & 0.875 & 0.969 & \textbf{1.0} & 0.969 & 0.875 & 0.75 & 0.625 & 0.50 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Demonstration 3: Comparison with the article}
+
+To compare our polar figures with the article's Figure~4:
+
+\begin{lstlisting}[language=bash]
+# Generate the comparison figure
+python scripts/compare_article_polar.py
+\end{lstlisting}
+
+This produces a 2$\times$2 grid: article Figure~4 (top) vs our
+simulation (bottom), for both \texttt{big.bi} ($\delta=1$) and
+\texttt{bi.gbi}.
+
+% ════════════════════════════════════════════════════════════════
+% Section 6: Polar Trajectory Reconstruction
+% ════════════════════════════════════════════════════════════════
+\section{Polar Trajectory Reconstruction}
+
+The two-branch polar visualization (vocalic $z_v$ in red,
+consonantal $z_c$ in blue) is reconstructed from the pipeline's
+anchors and nodes using the \texttt{polar\_arc()} and
+\texttt{stationary\_point()} primitives from
+\href{https://github.com/FBerthommier/covtl-pipeline}{covtl-pipeline}.
+
+\subsection{Reconstruction rules}
+
+The reconstruction walks through the anchors and emits, at 100~Hz,
+the two aligned trajectories:
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.26\textwidth}X@{}}
+\toprule
+\textbf{Block kind} & \textbf{Branch behavior} \\
+\midrule
+plateau & red: stationary vowel target; blue: inactive \\
+background, pause & red: arc$(V_o, V_e)$ with $K=30$, $\nu=+1$;
+                  blue: inactive \\
+decay, attack & red: stationary anchor; blue: inactive \\
+cluster ($n = (m{+}1)T$ steps) & red: arc$(V_o, V_e)$ over the whole
+                  block; blue: sub-arcs $V_o \to C_1 \to \dots \to C_m
+                  \to V_e$, $T$ steps each, $K=30$, $\nu=-1$ \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Display curvature}
+
+The display uses $K = 30$ (the reference curvature from the article
+and covtl-pipeline), not the $K = 1000$ used by the synthesis engine.
+This is a deliberate visualization choice that restores the geometry
+of the reference model (moderate curvature, visible but not extreme).
+
+\subsection{Comparison with the article's Figure~4}
+
+The article's Figure~4 shows:
+\begin{itemize}
+\item Left: \texttt{big.bi} ($\delta_o = \delta_e = 1$) --- the blue
+  $z_c$ branch makes 2 separate excursions toward /b/ and /g/.
+\item Right: \texttt{bi.gbi} --- the blue $z_c$ branch makes 1 fused
+  excursion visiting /g/ then /b/ (cluster /gb/).
+\end{itemize}
+
+Our simulation reproduces this topology:
+\begin{itemize}
+\item At $\delta = 0.995$ (big bi): $z_c$ makes 2 separate excursions.
+\item At $\delta = 1.00$ (bi.gbi): $z_c$ makes 1 fused /gb/ excursion.
+\end{itemize}
+
+The red $z_v$ branch is quasi-pointlike in both cases, because
+$V_o \approx V_e \approx V$ (all anchoring vowels collapse to the
+same point when $\delta \to 1$).
+
+% ════════════════════════════════════════════════════════════════
+% Section 7: Results and Duration Analysis
+% ════════════════════════════════════════════════════════════════
+\section{Results and Duration Analysis}
+
+\subsection{Duration reduction}
+
+The article predicts a duration reduction when transitioning from
+\texttt{big.bi} ($\delta < 1$) to \texttt{bi.gbi} ($\delta = 1$):
+
+\begin{quote}
+\itshape
+``At first, the gain of consonant clustering is a reduction of one
+period $T$. The graph complexity is corollary reduced with a decay
+of the number of nodes with the loss of $V$.''
+\end{quote}
+
+With $T=16$, our simulation shows:
+
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Configuration} & $\delta$ & Steps & Duration (ms) & Reduction \\
+\midrule
+big bi (start) & 0.50 & 224 & 2240 & --- \\
+big bi (pre-fusion) & 0.995 & 179 & 1790 & $-450$ ms \\
+bi.gbi (fused) & 1.00 & 130 & 1300 & $-490$ ms from $\delta=0.995$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The reduction of $490$ ms $\approx 3.06T$ matches the article's
+prediction:
+\begin{itemize}
+\item $1T$ from consonant clustering (2 gestures $\to$ 1 cluster)
+\item $1T$ from $V_e$ plateau absorption (between /g/ and /b/)
+\item $1T$ from $V_o$ plateau absorption (before /b/ in ``bi'')
+\end{itemize}
+Total predicted: $3T = 480$~ms; observed: $490$~ms (within 1 step
+= 10~ms).
+
+\subsection{Perceptual salience of the schwa @}
+
+With $T=16$ and $\delta = 0.50$, the schwa @ in \texttt{big@bi} is
+\textbf{salient} (clearly perceivable) because:
+\begin{enumerate}
+\item $V_e$ $\rho = 0.45$ (most centralized, far from full vowel /i/)
+\item $T_p = 160$~ms (long inter-syllable pause)
+\item $V_e$ plateau = 160~ms at full amplitude (the Ve plateau fix)
+\end{enumerate}
+
+As $\delta$ increases toward 1.0, $V_e$ approaches $V = /i/$, the
+pause shrinks, and the perception shifts from \texttt{big.bi} to
+\texttt{bi.gbi}.
+
+% ════════════════════════════════════════════════════════════════
+% Section 8: Code Structure
+% ════════════════════════════════════════════════════════════════
+\section{Code Structure}
+
+\subsection{Modified files (vs original timit-to-Maeda)}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{File} & \textbf{Modification} \\
+\midrule
+\texttt{synthSYL/constants.py} & Added \texttt{DEFAULT\_DELTA\_O},
+  \texttt{DEFAULT\_DELTA\_E} \\
+\texttt{synthSYL/gesture.py} & Added $\delta_o$, $\delta_e$ kwargs
+  to \texttt{build\_gesture\_anchors()}, \\
+  & \texttt{\_insert\_word\_end\_anchors()},
+  \texttt{\_insert\_vowel\_onset\_anchors()}, \\
+  & \texttt{\_insert\_syllable\_onset\_anchors()} \\
+  & Fixed $V_o = (\delta_o \cdot \rho_V, \theta_V)$
+  (was $[\delta_o, \theta_V]$) \\
+\texttt{synthSYL/trajectory.py} & Added $V_e$ plateau (full-amplitude)
+  before decay block \\
+\texttt{synthSYL/pipeline.py} & Added $\delta_o$, $\delta_e$ kwargs
+  to \texttt{panphon\_pipeline()} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Simulation scripts}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Script} & \textbf{Purpose} \\
+\midrule
+\texttt{run\_bigbi\_polar\_sweep.py} & Main sweep: big.bi $\to$ bi.gbi
+  with polar coords \\
+\texttt{run\_ibbi\_ushape\_sweep.py} & U-shaped $T_p$ variation \\
+\texttt{make\_bigbi\_dual\_video.py} & Dual-panel video generation \\
+\texttt{make\_ibbi\_polar\_video.py} & Polar-only video generation \\
+\texttt{embed\_video\_in\_html.py} & Self-contained HTML (base64 video) \\
+\texttt{compare\_article\_polar.py} & Compare with article Figure~4 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ════════════════════════════════════════════════════════════════
+% Section 9: Quick Demo
+% ════════════════════════════════════════════════════════════════
+\section{Quick Demo}
+
+The minimal code to run the big.bi $\to$ bi.gbi simulation:
+
+\begin{lstlisting}
+from synthSYL import panphon_pipeline
+import vlam
+import numpy as np
+from scipy.io.wavfile import write
+
+# Run the pipeline for "big bi" at delta=0.5 (salient schwa)
+result = panphon_pipeline(
+    "big bi",
+    T=16,
+    short_pause_duration_factor=1.0,
+    delta_o=0.5,
+    delta_e=0.5,
+)
+
+# Synthesize audio
+state = vlam.VlamState.initial(195)
+config = vlam.SynthConfig(play_audio=False)
+sr = vlam.synthwordfen(
+    state=state,
+    articulatory_params=result.Pval,
+    word_tokens=["O", "V", "F"],
+    duration_factor=16,
+    envelope=result.envelope,
+    config=config,
+)
+
+# Save WAV
+sig = sr.signal
+sig_int16 = np.int16(32767 * sig / (1.01 * np.max(np.abs(sig))))
+write("big_bi_delta05.wav", 20000, sig_int16)
+print(f"Signal: {sig.shape[0]} samples ({sig.shape[0]/20000*1000:.0f} ms)")
+\end{lstlisting}
+
+% ════════════════════════════════════════════════════════════════
+% Section 11: Article Demonstrations
+% ════════════════════════════════════════════════════════════════
+\section{Article Demonstrations}
+
+This section documents three additional demonstrations from the article
+that have been implemented in this repository.
+
+\subsection{Demo 1: /ibia/ VCV synthesis (Figure 1)}
+
+The article's Figure~1 shows the four-step synthesis pipeline on the
+sequence /ibia/ (/i/ $\to$ /b/ $\to$ /i/ $\to$ /a/). The four panels
+are:
+
+\begin{enumerate}
+\item \textbf{(a) Planning trajectories} $z_v(t)$ and $z_c(t)$ in the
+  complex plane. The vocalic branch $z_v$ (red) flows from /i/ to /i/
+  to /a/, while the consonantal branch $z_c$ (blue) makes an excursion
+  toward the /b/ target.
+
+\item \textbf{(b) Flow of articulatory parameters} --- the 7 Maeda
+  parameters over time. The \textit{trough effect} is visible: the
+  Body parameter (tongue body) makes an unexpected front/back movement
+  during /b/, because /b/ lies on the same angular direction as /u/ in
+  the complex plane (and coincides with it at the article position
+  $\rho_b = 1$; see Demo~4).
+
+\item \textbf{(c) Formant trajectory} F1-F2-F3. The F2 shows an
+  S-shaped pattern: it starts at the /i/ value ($\approx 1830$~Hz),
+  dips during /b/ ($\approx 1564$~Hz, the /b/ locus), then rises back
+  to /i/ before transitioning to /a/.
+
+\item \textbf{(d) Output spectrogram} showing the acoustic result.
+\end{enumerate}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/demo1/ibia_4panel.png}
+\caption{Figure 1 reproduction: four-step synthesis of /ibia/ (T=16,
+K=10, Kvoy=30, Pexp=1). (a) Planning trajectories. (b) Articulatory
+parameters (trough effect visible on Body). (c) Formant trajectory
+(S-shaped F2). (d) Spectrogram.}
+\end{figure}
+
+\subsection{Demo 2: Locus equations (Figure 3)}
+
+The article's Figure~3 shows the locus equations for /b/, /d/, /g/
+across 8 vowels. A locus equation is the linear relationship:
+
+\begin{equation}
+F2_{\text{locus}} = a \cdot F2_{\text{vowel}} + b
+\end{equation}
+
+where $F2_{\text{locus}}$ is measured 30~ms after the consonant
+\textbf{release} --- the article: ``taking the F2 values 30~ms after
+the onset'' ($\delta_o = 0.5$), ``onset'' meaning the onset of the
+vowel at the release, in the locus-equation tradition of F2-onset
+measurement. In the synthesis timeline of a CV word ($T = 16$ steps of
+10~ms), the release is the first frame of the C$\to$V transition block
+(frame $2T$): frames $0..T{-}1$ are the initial arc (neutral $\to$ Vo),
+frames $T..2T{-}1$ the Vo$\to$C closure (envelope silent), frames
+$2T..3T{-}1$ the C$\to$V transition (envelope rising), and frames
+$3T..4T{-}1$ the vowel plateau. Hence
+$F2_{\text{locus}} = F2(\text{frame } 2T{+}3)$ and
+$F2_{\text{vowel}}$ is averaged over the plateau frames (envelope at
+full amplitude). The script
+(\texttt{scripts/run\_locus\_trough\_demos.py}) detects the release
+and the plateau from the envelope; the offset
+(\texttt{LOCUS\_OFFSET\_STEPS = 3} in \texttt{config.py}) is the
+article's 30~ms.
+
+/g/ uses two article positions: velar $(\rho=1.2, \theta=\pi/3)$ for
+the back vowels \{/u/, /o/, /O/\} and palatal
+$(\rho=1.1, \theta=23\pi/12)$ for the front vowels --- \emph{including
+/a/}, whose red point lies on the palatal branch in the article's
+Figure~3.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/demo2/locus_equations.png}
+\caption{Figure 3 reproduction: locus equations for /b/, /d/, /g/
+across 8 vowels. Each panel shows $F2_{\text{locus}}$ vs
+$F2_{\text{vowel}}$ with the linear regression line.}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\textwidth]{figures/demo2/locus_equations_combined.png}
+\caption{Combined locus equations for all three consonants. The dotted
+line ($y = x$) represents no coarticulation. Slopes $< 1$ indicate
+coarticulation (the consonant locus is influenced by the vowel
+context).}
+\end{figure}
+
+\textbf{Results (corrected protocol):}
+
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+Consonant & Slope ($a$) & Intercept ($b$) & $r^2$ & Article Fig.~3 ($a$) \\
+\midrule
+/b/ & 0.704 & 351 Hz & 0.982 & $\approx 0.70$ \\
+/d/ & 0.412 & 1265 Hz & 0.964 & $\approx 0.55$ \\
+/g/ palatal (front + /a/) & 0.644 & 903 Hz & 0.809 & $\approx 0.75$ \\
+/g/ velar (back) & 2.107 & $-1207$ Hz & 0.999 & $\approx 2.0$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The article-figure slopes in the last column were measured by pixel
+extraction from the arXiv source figure (marker centroids calibrated
+on the axis ticks). The /b/ slope matches the article to three digits,
+and the /g/ split (steep velar, shallow palatal) is reproduced. The
+/d/ locus at back vowels (1689--1743~Hz) sits in the canonical
+alveolar range ($\approx$1700--1800~Hz), and the slope ordering
+$a(/d/) < a(/b/) < 1$ now agrees with both the article's Figure~3 and
+the classical locus-equation literature, where slopes descend from
+labial to velar to alveolar and the alveolar line is the flattest with
+the highest intercept~\cite{sussman1991,iskarous2010}. The article notes:
+\textit{``This is similar to the classical observation but with a
+downward shift of the velar /g/ which could be due to geometric
+differences between the VLAM and the human vocal tract.''} The velar
+points here indeed fall on or below the $y = x$ diagonal
+(/g/+u: $1029 \to 966$~Hz).
+
+The F2$_{\text{vowel}}$ axis is slightly compressed relative to the
+article's figure (e.g.\ /i/: 2290~Hz here vs $\approx$2660~Hz, /u/:
+1029 vs $\approx$880): the article was produced with an earlier
+synthSYL vowel table (corner vowels at $\rho = 1$ per \S2.1), which
+has since been revised in \texttt{timit-to-Maeda}. This shifts the
+individual slopes slightly but preserves every trend.
+
+\subsubsection{Root cause of the previous /b/--/d/ inversion}
+
+An earlier version of this demo reported a spurious /b/--/d/
+inversion (/d/ slope $1.633$, /b/ $0.974$). The cause was purely a
+\textbf{measurement-protocol bug}, not a model or synthesizer defect:
+
+\begin{itemize}
+\item The script derived the measurement frame from
+  \texttt{anchor.i * T}, where \texttt{anchor.i} is the \emph{node
+  index} in the segment list (not a time). For a CV word the V anchor
+  has $i = 1$, so F2 was sampled at frames $T{+}3$ (locus) and
+  $T{+}8$ (``vowel'') --- both \emph{inside the silent Vo$\to$C
+  closure}, up to 13 frames before the release. The resulting
+  regression of closure-phase F2 against closure-phase F2 produced
+  the steep spurious /d/ line (reproduced exactly: $a = 1.633$,
+  $b = -1316$, $r^2 = 0.991$).
+\item \textbf{The soft rectification is not implicated.}
+  \texttt{valrect} $= 0.75$ (\texttt{soft\_rect\_s}) is the canonical
+  value of the original packages: \texttt{vlam.py} in this repository
+  is byte-identical to \texttt{FBerthommier/timit-to-Maeda}, whose
+  \texttt{batch\_synthesize.py} defaults to \texttt{-{}-valrect 0.75}.
+  It is applied to the \emph{area function} (soft\_rect of section
+  areas, preventing zero/negative areas during closure), not to the
+  articulatory parameters. A sensitivity sweep confirms the locus
+  slopes are insensitive to it over $s \in [0.5, 2.0]$
+  ($a(/d/) = 0.562 \pm 0.011$ at release$+$50~ms); only the hard
+  limit $s \to 0$ (hard clipping) breaks the synthesis.
+\item \textbf{$\delta_o$ is not implicated either.} Sweeping
+  $\delta_o \in \{0.5, 0.7, 1.0\}$ moves $a(/d/) $ by less than
+  $0.02$.
+\item \textbf{The measurement instant is the decisive parameter.}
+  With the release correctly located at frame $2T$, the /d/ slope
+  varies from 0.25 (release$+$0) to 0.79 (release$+$6 frames), passing
+  through the article value around release$+$3 (30~ms). The /b/ slope
+  varies from 0.50 to 0.92 over the same range.
+\end{itemize}
+
+No engine file (\texttt{vlam.py}, \texttt{synthSYL/}) was modified;
+only the measurement logic of the demo script, the /g/ allophony
+grouping of /a/, and \texttt{config.py} (new constant
+\texttt{LOCUS\_OFFSET\_STEPS}) changed.
+
+\textbf{Note:} For a detailed comparison with Ohman's spectrographic
+data and the S-shaped F2 trajectory analysis, see the 2025 companion
+article (arXiv:2505.22455).
+
+\subsection{Demo 4: Trough effect (Figure 1b)}
+
+The article (\S3) describes an unexpected articulatory phenomenon
+during /b/:
+
+\begin{quote}
+\itshape
+``The tongue body is making an unexpected front/back movement during
+/b/ which corresponds to the trough effect [29].''
+
+\smallskip
+\hfill (reference [29]: Lindblom, Sussman, Modarresi Ghavami \&
+Burlingame, \emph{Phonetica} 59:245--262, 2002)
+\end{quote}
+
+In the present model, /b/ lies on the \textbf{same angular direction
+as /u/} in the complex plane, with $\theta_b = \pi/3$. This is
+verified in the code constants: the vowel table of
+\texttt{synthSYL/phonology.py} places /u/ at
+$(\rho_u = 1.0,\ \theta_u = \pi/3)$, and the article position of /b/
+used by the demos is $(\rho_b = 1.0,\ \theta_b = \pi/3)$ --- with
+$\rho_b = \rho_u$ the two targets coincide exactly; the synthSYL
+registry default $\rho_b = 1.2$ shares the same direction but a larger
+radius. During the /b/ consonant:
+
+\begin{itemize}
+\item the consonantal branch $z_c$ moves toward the /b/ target, which
+lies on the /u/ direction;
+\item the selection vector $S_c = \{1,2,6\}$ (article's 1-based
+numbering; code indices $\{0,1,5\}$) activates the Jaw, Body and
+LipH parameters --- in particular the Body parameter (index 1 in the
+0-based code indexing);
+\item the vowel articulators selected by
+$S_v = \{3,4,5,7\}$ (code indices $\{2,3,4,6\}$: Dorsum, Tip, LipP,
+Hy) remain associated with the /i/ configuration;
+\item consequently, the Body parameter exhibits an unexpected
+front/back excursion during the /b/ interval, producing the
+characteristic dip in the simulated trajectory.
+\end{itemize}
+
+This articulatory excursion corresponds to the \textbf{trough effect}
+reported in Lindblom et al.\ [29]. In the present implementation, the
+effect arises from the interaction between the consonantal trajectory
+$z_c(t)$ and the parameter-selection mechanism: although /b/ is a
+bilabial consonant, its target lies in the same angular direction as
+/u/, and the Body parameter is included in the consonantal selection
+vector.
+
+Thus, the simulation reproduces the tongue-body movement identified in
+the article as the trough effect. The geometric explanation given here
+is specific to the present model and should not be interpreted as the
+physiological explanation proposed by Lindblom et al.\ [29].
+
+An interactive HTML simulation illustrating this effect accompanies
+this section in the \texttt{simulations/} directory.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/demo4/trough_effect.png}
+\caption{Trough effect: Body parameter variation during /b/, /d/, /g/
+in VCV sequences. The Body (orange, thick line) shows a dip during
+the consonant for /b/ (ibi, aba), corresponding to the trough effect.
+The consonant region is shaded in orange.}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{figures/demo4/trough_effect_overlay.png}
+\caption{Body parameter overlay for /ibi/, /aba/, /idi/, /igi/. The
+trough (dip) is most pronounced for /b/ (ibi, aba) because the /b/
+target lies on the same angular direction as /u/.}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.65\textwidth]{figures/demo4/trough_effect_polar_explanation.png}
+\caption{Polar explanation: /b/ (orange square) lies on the same
+angular direction as /u/ (orange circle) in the complex plane --- with
+the article position $\rho_b = 1$ the two targets coincide. During
+/b/, the Body parameter follows $z_c(t)$ toward /u/, creating the
+trough effect while the vowel articulators stay around /i/.}
+\end{figure}
+
+\textbf{Measured trough depth} (for /ibi/, T=16):
+\begin{itemize}
+\item Body before /b/: $\approx 0.0$ (neutral, at /i/)
+\item Body at trough: $-2.25$ (at $t = 160$~ms, during /b/)
+\item Body after /b/: $\approx 0.0$ (back to /i/)
+\item Trough depth: $2.25$ (significant dip)
+\end{itemize}
+
+This confirms the trough effect described in the article and in
+Lindblom et al. [29].
+
+\subsection{Demo 5: Six consonant cluster pairs}
+
+The article (\S3) describes the tuning of the six pairs of
+/b,d,g/:
+
+\begin{center}
+\begin{tabular}{cccl}
+\toprule
+\textbf{Pair} & \textbf{Input} & \textbf{Sc} & \textbf{Note} \\
+\midrule
+/bd/ & abda & \{1,2,3,6\} & /b/ involved $\to$ Sc=\{1,2,3,6\} \\
+/bg/ & abga & \{1,2,3,6\} & /b/ involved, /g/ palatal \\
+/db/ & adba & \{1,2,3,6\} & /b/ involved $\to$ Sc=\{1,2,3,6\} \\
+/dg/ & adga & \{1,2,3,4\} & no /b/ $\to$ Sc=\{1,2,3,4\} \\
+/gb/ & agba & \{1,2,3,6\} & /b/ involved, /g/ palatal \\
+/gd/ & agda & \{1,2,3,4\} & no /b/ $\to$ Sc=\{1,2,3,4\} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Rule:} when /b/ is involved in the pair, the selection vector
+is $S_c = \{1,2,3,6\}$ (article numbering; code $\{0,1,2,5\}$ = jaw,
+body, dorsum, LipH); otherwise
+$S_c = \{1,2,3,4\}$ (article numbering; code $\{0,1,2,3\}$ = jaw,
+body, dorsum, tip). The /g/ is systematically
+palatal when in a cluster.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/demo5/cluster_params.png}
+\caption{Articulatory parameters for the six cluster pairs. Each
+panel shows the 7 Maeda parameters over time.}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/demo5/cluster_polar.png}
+\caption{Polar trajectories for the six cluster pairs. The consonantal
+branch $z_c$ (blue) visits both consonant targets in sequence.}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/demo5/cluster_spectrograms.png}
+\caption{Spectrograms for the six cluster pairs.}
+\end{figure}
+
+% ════════════════════════════════════════════════════════════════
+% Section 11.6: Original Article Simulations
+% ════════════════════════════════════════════════════════════════
+\subsection{Original article simulations (exact reproduction)}
+
+The \texttt{original\_simulations/} directory contains three
+simulations reproduced with the \textbf{exact article parameters}
+for direct comparison with the article's figures:
+
+\subsubsection{Figure 1: /ibia/ with T=100ms}
+
+\texttt{original\_simulations/figure1\_ibia/}
+
+Reproduces the article's Figure~1 using $T=10$ (100~ms per period),
+matching the article's ``$T = 100$ms''. The 4-panel figure shows:
+(a) planning trajectories, (b) articulatory parameters (trough
+effect), (c) formant trajectory (S-shaped F2), (d) spectrogram.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{../original_simulations/figure1_ibia/ibia_4panel_original.png}
+\caption{Figure 1 (original reproduction): four-step synthesis of
+/ibia/ with $T=100$ms ($T_{\text{base}}=10$).}
+\end{figure}
+
+\subsubsection{Figure 4: big.bi ($\delta=1$) and bi.gbi}
+
+\texttt{original\_simulations/figure4\_bigbi\_bigbi/}
+
+Reproduces the article's Figure~4: left panel shows big.bi with
+$\delta_o = \delta_e = 1$ (where $V_o = V_e = V$), right panel
+shows bi.gbi (fused /gb/ cluster). The article's original Figure~4
+is included as \texttt{article\_figure4.png} for side-by-side
+comparison.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{../original_simulations/figure4_bigbi_bigbi/figure4_polar_original.png}
+\caption{Figure 4 polar (original reproduction): big.bi ($\delta=1$)
+left, bi.gbi right. Compare with the article's Figure~4
+(\texttt{article\_figure4.png}).}
+\end{figure}
+
+\subsubsection{Supplement: /ib/ $\to$ /bi/}
+
+\texttt{original\_simulations/supplement\_ib\_bi/}
+
+Reproduces the supplement mentioned in \S3: ``The classical
+transformation of /ib/ into /bi/ is given in the supplement.''
+Three cases are shown side by side:
+\begin{enumerate}
+\item /ib/ with $\delta=0.5$ (schwa @ audible, /b/ in coda)
+\item /ib/ with $\delta=1.0$ ($V_o = V_e = V$, fusion)
+\item /bi/ with $\delta=1.0$ (/b/ in onset, the fused form)
+\end{enumerate}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{../original_simulations/supplement_ib_bi/supplement_ib_bi_original.png}
+\caption{Supplement (original reproduction): /ib/ $\to$ /bi/
+classical transformation. Three columns: /ib/ $\delta=0.5$,
+/ib/ $\delta=1.0$, /bi/ $\delta=1.0$.}
+\end{figure}
+
+% ════════════════════════════════════════════════════════════════
+% Section 12: Interactive HTML Simulations
+% ════════════════════════════════════════════════════════════════
+\section{Interactive HTML Simulations}
+
+The repository includes three self-contained HTML files (in the
+\texttt{simulations/} directory) with video, poster, captions, and
+comparison figures embedded as base64 data URIs. These files can be
+opened directly in any modern browser without requiring a web server
+or external file dependencies.
+
+\subsection{big.bi $\to$ bi.gbi (T=16, starts at COEFCEN=0.5)}
+
+\texttt{simulations/bigbi\_bi\_gbi\_embedded.html} (6.5 MB)
+
+This simulation demonstrates the verbal transformation from big.bi
+to bi.gbi (\S4 of the article). It starts at $\delta = 0.50$
+(COEFCEN = 0.5, salient schwa @) for clear perception of big@bi,
+then increases $\delta$ to 1.00 (fusion). The last bi.gbi segment is
+repeated 3 times for perceptibility.
+
+Features: dual-panel video (sagittal Maeda | polar plot with phoneme),
+14 segments, WebVTT captions, indexed transcript, keyboard shortcuts.
+
+\subsection{ib ib $\to$ bi bi (NON-REVERSIBLE U-shape)}
+
+\texttt{simulations/ibbi\_ushape\_nonreversible\_embedded.html} (5.1 MB)
+
+This simulation demonstrates the \textbf{non-reversible} verbal
+transformation. The first half uses ``ib ib'' (VC.VC, /b/ in coda)
+with decreasing $T_p$. At the fusion point ($T_p=0$, $\delta=1$),
+the input switches to ``bi bi'' (CV.CV, /b/ in onset). The second
+half restores $T_p$ but keeps ``bi bi'' --- the /b/ stays in onset
+position even with a fully restored pause, proving the transformation
+is permanent and non-reversible.
+
+Features: dual-panel video, 11 segments, WebVTT captions, indexed
+transcript, keyboard shortcuts.
+
+\subsection{ib ib $\to$ bi bi (U-shape, reversible)}
+
+\texttt{simulations/ibbi\_ushape\_embedded.html} (6.8 MB)
+
+The reversible version of the U-shape: ``ib ib'' throughout, with
+$T_p$ going 160 ms $\to$ 0 $\to$ 160 ms. This version goes back to
+``ib ib'' at the end (reversible). Included for comparison with the
+non-reversible version above.
+
+Features: dual-panel video, 13 segments, WebVTT captions, indexed
+transcript, keyboard shortcuts.
+
+% ════════════════════════════════════════════════════════════════
+% Section 13: Conclusion
+% ════════════════════════════════════════════════════════════════
+\section{Conclusion}
+
+This repository provides a complete, reproducible implementation of
+the verbal transformation described in arXiv:2307.02299. The key
+contributions are:
+
+\begin{enumerate}
+\item The $\delta_o$ and $\delta_e$ parameters, enabling the
+  gradual transition from schwa-like vocoid to full vowel.
+
+\item The $V_e$ plateau fix, making the schwa perceptually salient
+  (without this, the @ $\to$ /i/ transformation is imperceptible).
+
+\item The $V_o$ formula correction ($V_o = \delta_o \cdot \rho_V$),
+  ensuring $V_o = V$ at $\delta = 1$ for proper fusion.
+
+\item The polar trajectory reconstruction, reproducing the
+  two-branch visualization (vocalic $z_v$, consonantal $z_c$)
+  described in the covtl-pipeline documentation.
+
+\item The U-shaped $T_p$ variation, for clear perceptual
+  demonstration of the ib ib $\to$ bi bi transformation.
+\end{enumerate}
+
+The duration reduction observed ($3.06T \approx 490$~ms with $T=16$)
+matches the article's prediction of $3T$ (1$T$ from consonant
+clustering + 2$T$ from $V_o$/$V_e$ plateau absorption).
+
+The polar topology matches the article's Figure~4: at $\delta < 1$,
+the consonantal branch makes 2 separate excursions; at $\delta = 1$
+(bi.gbi), it makes 1 fused /gb/ excursion.
+
+\begin{thebibliography}{9}
+\bibitem{berthommier2023}
+F.~Berthommier,
+\textit{Why can big.bi be changed to bi.gbi? A mathematical model of
+syllabification and articulatory synthesis},
+arXiv:2307.02299, July 2023.
+
+\bibitem{sussman1991}
+H.~M.~Sussman, H.~A.~McCaffrey and S.~A.~Matthews,
+\textit{An investigation of locus equations as a source of relational
+invariance for stop place categorization},
+J.~Acoust.\ Soc.\ Am.\ 90(3):1309--1325, 1991.
+
+\bibitem{iskarous2010}
+K.~Iskarous, C.~A.~Fowler and D.~H.~Whalen,
+\textit{Locus equations are an acoustic expression of articulator
+synergy},
+J.~Acoust.\ Soc.\ Am.\ 128(4):2021--2032, 2010.
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,5 @@
+# Core runtime dependencies (simulation + synthesis + figures)
+# Python >= 3.10
+numpy>=2.0
+scipy>=1.11
+matplotlib>=3.8
