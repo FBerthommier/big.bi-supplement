@@ -74,6 +74,25 @@ gesture in big.bi vs the single fused /gb/ cluster gesture in bi.gbi)
 is the §4 syllabification demonstration, now reproduced under the
 article's exact figure parameters.
 
+### nu inversion (author's reading of the article figure)
+
+Comparing the above figure with the article's Figure 4, the author
+reads the arc convexity as MIRRORED: ν flips convexity into
+concavity. The display convention is therefore inverted —
+`docs/figures/fig_bigbi_article_conditions_nu_inv.png` shows the same
+simulation (COEFCEN=1, VOYDEB=0.5, T=16) with **ν_v = −1, ν_c = +1**
+(was +1 / −1). Gesture topology is unchanged (same spans, same
+apexes: big.bi b→g→b; bi.gbi b + fused /gb); only the bow direction
+of every arc is mirrored.
+
+Convention note: the engine drives ALL arcs (vowel backgrounds and
+consonant sub-arcs alike) with `DEFAULT_NU = −1` via `arc_B`; the
+per-branch ν (+1/−1) is a DISPLAY convention inherited from the
+reference display scripts. If the ν_v=−1 / ν_c=+1 convention is
+confirmed, it should be propagated to `polar_sync` defaults, the
+sweep/video scripts and covtl-pipeline's `polar_video.py`
+(NU_VOCALIC/NU_CONSONANTAL) for consistency.
+
 ## Limitations / next step
 
 The 472-px reference allows topology matching and target-layout
