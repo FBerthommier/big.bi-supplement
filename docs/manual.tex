@@ -711,12 +711,16 @@ sit at the same pitch; the small median shift between ``ib ib'' and
 difference. No digital clipping anywhere ($<$0.02\,\% of samples at
 peak). \texttt{valrect} (the soft-rectification smoothness of the
 vocal-tract area function, \texttt{soft\_rect(x, s)} with
-$s = 0$ $\equiv$ hard rectification) is \textbf{0.75 in every
-script} (the article's canonical value). Raising it to 1.1--1.5 was
-tested: the high-frequency energy ratio above 5~kHz decreases only
-marginally (0.17\,\% $\to$ 0.14\,\%) with no change in F0 or
-duration; test WAVs for listening comparison are kept outside the
-repository (\texttt{P:$\backslash$bigbi-workspace$\backslash$valrect\_test\_*.wav}).
+$s = 0$ $\equiv$ hard rectification) is \textbf{1.10 in every
+script} (author ruling 2026-10-07: raised from the article's
+canonical 0.75 after comparative listening, to reduce the perceived
+fizz on /i/; see \texttt{docs/VALRECT\_110.md} for the re-baselined
+reference). Measured on ``bi bi''/``ib ib'' test utterances, the
+high-frequency energy ratio above 5~kHz decreases from 0.17\,\% to
+0.15\,\% (``bi bi'') and from 0.13\,\% to 0.12\,\% (``ib ib'')
+between 0.75 and 1.10, with no change in F0 or duration; test WAVs
+for listening comparison are kept outside the repository
+(\texttt{P:$\backslash$bigbi-workspace$\backslash$valrect\_test\_*.wav}).
 
 \subsection{Perceptual salience of the schwa @}
 
@@ -935,20 +939,25 @@ locus is influenced by the vowel context).}
 \toprule
 Consonant & Slope ($a$) & Intercept ($b$) & $r^2$ & Article Fig.~3 ($a$) \\
 \midrule
-/b/ & 0.704 & 351 Hz & 0.982 & $\approx 0.70$ \\
-/d/ & 0.412 & 1265 Hz & 0.964 & $\approx 0.55$ \\
-/g/ palatal (front + /a/) & 0.644 & 903 Hz & 0.809 & $\approx 0.75$ \\
-/g/ velar (back) & 2.107 & $-1207$ Hz & 0.999 & $\approx 2.0$ \\
+/b/ & 0.703 & 357 Hz & 0.983 & $\approx 0.70$ \\
+/d/ & 0.421 & 1245 Hz & 0.965 & $\approx 0.55$ \\
+/g/ palatal (front + /a/) & 0.630 & 916 Hz & 0.784 & $\approx 0.75$ \\
+/g/ velar (back) & 2.335 & $-1501$ Hz & 1.000 & $\approx 2.0$ \\
 \bottomrule
 \end{tabular}
+
+\smallskip
+Measured at \texttt{valrect} $= 1.10$ (author ruling 2026-10-07; at
+the historical 0.75 the slopes were 0.704 / 0.412 / 0.644 / 2.107).
 \end{center}
 
 The article-figure slopes in the last column were measured by pixel
 extraction from the arXiv source figure (marker centroids calibrated
-on the axis ticks). The /b/ slope matches the article to three digits,
-and the /g/ split (steep velar, shallow palatal) is reproduced. The
-/d/ locus at back vowels (1689--1743~Hz) sits in the canonical
-alveolar range ($\approx$1700--1800~Hz), and the slope ordering
+on the axis ticks). The /b/ slope matches the article value
+($\approx$0.70), and the /g/ split (steep velar, shallow palatal) is
+reproduced. The /d/ locus at back vowels (1690--1782~Hz) sits in the
+canonical alveolar range ($\approx$1700--1800~Hz), and the slope
+ordering
 $a(/d/) < a(/b/) < 1$ now agrees with both the article's Figure~3 and
 the classical locus-equation literature, where slopes descend from
 labial to velar to alveolar and the alveolar line is the flattest with
@@ -983,10 +992,14 @@ inversion (/d/ slope $1.633$, /b/ $0.974$). The cause was purely a
   the steep spurious /d/ line (reproduced exactly: $a = 1.633$,
   $b = -1316$, $r^2 = 0.991$).
 \item \textbf{The soft rectification is not implicated.}
-  \texttt{valrect} $= 0.75$ (\texttt{soft\_rect\_s}) is the canonical
+  \texttt{valrect} $= 0.75$ (\texttt{soft\_rect\_s}) was the canonical
   value of the original packages: \texttt{vlam.py} in this repository
   is byte-identical to \texttt{FBerthommier/timit-to-Maeda}, whose
   \texttt{batch\_synthesize.py} defaults to \texttt{-{}-valrect 0.75}.
+  (Since 2026-10-07 this repository defaults to \texttt{valrect} =
+  1.10 --- author ruling after comparative listening, see
+  \texttt{docs/VALRECT\_110.md}; the sensitivity evidence below is
+  unchanged.)
   It is applied to the \emph{area function} (soft\_rect of section
   areas, preventing zero/negative areas during closure), not to the
   articulatory parameters. A sensitivity sweep confirms the locus

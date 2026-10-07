@@ -72,10 +72,12 @@ T ∈ {5, 10, 16} ; pentes a(/b/), a(/d/) :
 
 - **`soft_rect_s` (valrect) est disculpé** : sur s ∈ [0,5 ; 2,0],
   a(/d/) varie de ±0,01 seulement (0,555→0,584 à release+3 ; 0,562 à
-  s=0,75, release+50 ms). `valrect = 0,75` est la valeur canonique des
-  packages d'origine : `vlam.py` local est **identique octet par octet**
-  à `FBerthommier/timit-to-Maeda`, dont `batch_synthesize.py` a
-  `--valrect 0.75` par défaut. La rectification douce s'applique à la
+  s=0,75, release+50 ms). `valrect = 0,75` était la valeur canonique
+  des packages d'origine : `vlam.py` local est **identique octet par
+  octet** à `FBerthommier/timit-to-Maeda`, dont `batch_synthesize.py`
+  a `--valrect 0.75` par défaut. (Depuis le 2026-10-07, le défaut du
+  dépôt est 1,10 — ruling auteur après écoute comparative, cf.
+  `docs/VALRECT_110.md`.) La rectification douce s'applique à la
   **fonction d'aire** (`soft_rect(area)`, évite les sections nulles
   pendant la fermeture), pas aux paramètres articulatoires. Seul le
   hard-clipping (s → 0) détruit la synthèse (/b/ ≈ 0,03–0,06,
@@ -86,8 +88,10 @@ T ∈ {5, 10, 16} ; pentes a(/b/), a(/d/) :
   valeur de l'article est atteinte vers release+3 (30 ms).
 - T = 10 (« T = 100 ms » de la figure 1 de l'article) donne
   (b, d, gv, gp) = (0,826 ; 0,594 ; 1,786 ; 0,827) ; T = 16 (défaut du
-  dépôt) donne (0,704 ; 0,412 ; 2,107 ; 0,644). T = 16 est retenu
-  (cohérence avec le reste des démos) ; les deux restituent l'ordre.
+  dépôt) donne (0,704 ; 0,412 ; 2,107 ; 0,644) à valrect=0,75 —
+  (0,703 ; 0,421 ; 2,335 ; 0,630) après le passage à valrect=1,10
+  (2026-10-07). T = 16 est retenu (cohérence avec le reste des
+  démos) ; les deux restituent l'ordre.
 
 ## 5. Correctif appliqué
 
@@ -102,7 +106,8 @@ T ∈ {5, 10, 16} ; pentes a(/b/), a(/d/) :
    propre docstring) au lieu de dépendre de l'état résiduel du
    registry.
 2. `config.py` — nouveau `LOCUS_OFFSET_STEPS = 3` (30 ms), commentaire
-   documentant `VALRECT = 0.75` (valeur canonique d'origine).
+   documentant `VALRECT` (0,75 valeur canonique d'origine ; porté à
+   1,10 le 2026-10-07, cf. `docs/VALRECT_110.md`).
 3. `docs/manual.tex` — section Demo 2 réécrite : protocole exact,
    tableau comparatif (ci-dessous), sous-section « Root cause of the
    previous /b/–/d/ inversion », références bibliographiques
@@ -115,14 +120,16 @@ identiques au zip de référence — vérifié par diff).
 
 | Consonne | Pente a | Intercept b | r² | Article |
 |---|---|---|---|---|
-| /b/ | **0,704** | 351 Hz | 0,982 | ≈ 0,70 ✓ |
-| /d/ | **0,412** | 1265 Hz | 0,964 | ≈ 0,55 (même tendance) |
-| /g/ palatal (front + /a/) | 0,644 | 903 Hz | 0,809 | ≈ 0,75 |
-| /g/ vélaire (back) | 2,107 | −1207 Hz | 0,999 | ≈ 2,0 ✓ |
+| /b/ | **0,703** | 357 Hz | 0,983 | ≈ 0,70 ✓ |
+| /d/ | **0,421** | 1245 Hz | 0,965 | ≈ 0,55 (même tendance) |
+| /g/ palatal (front + /a/) | 0,630 | 916 Hz | 0,784 | ≈ 0,75 |
+| /g/ vélaire (back) | 2,335 | −1501 Hz | 1,000 | ≈ 2,0 ✓ |
 
-L'ordre **a(/d/) < a(/b/) < 1** est rétabli ; le locus de /d/ aux
-voyelles arrières (1689–1743 Hz) est dans la plage alvéolaire classique
-(≈ 1700–1800 Hz) ; /g/+u (1029 → 966 Hz) tombe sous la diagonale
+Valeurs à valrect = 1,10 (défaut du dépôt depuis le 2026-10-07) ; à la
+valeur historique 0,75 : (0,704 ; 0,412 ; 0,644 ; 2,107). L'ordre
+**a(/d/) < a(/b/) < 1** est rétabli ; le locus de /d/ aux
+voyelles arrières (1690–1782 Hz) est dans la plage alvéolaire classique
+(≈ 1700–1800 Hz) ; /g/+u (1076 → 1010 Hz) tombe sous la diagonale
 (« downward shift of the velar /g/ » de l'article).
 
 L'axe F2_voyelle est légèrement compressé par rapport à la figure de
