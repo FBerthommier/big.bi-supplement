@@ -21,6 +21,19 @@ opposite sign (its nu=-1 is equivalent to Eq. 2 nu=+1) — display nu
 values are NOT transferable between the two engines; treat the two
 display engines separately.
 
+ORIGINAL display-arc convention (Syllable_Synthesis synthSYL.py,
+``arcplot`` — the code behind the article figures): every display
+sub-arc carries the phase on the ARRIVAL-side point (pa) with the
+departure-side point pd held fixed (pd = the consonant on z_c
+sub-arc legs, V1 on vocalic backgrounds), theta swept over [0, pi]
+(approach leg, opint=0) or [-pi, 0] (release/background, opint=0 or
+-1), rho = cos(theta/2)^Pexp. That arcplot form is the REFERENCE,
+not an option; ``polar_arc`` (orientation="inverse", rk = cos^2)
+reproduces it only up to a Pexp=2 blend with a mirrored phase sweep
+(max deviation ~0.12 rho units on K=30 arcs) — it is kept for
+backward compatibility, and scripts/polar_sync.py draws the display
+branches with the exact arcplot form.
+
 Reference:
   - arXiv:2307.02299 (Berthommier 2023, Eq. 2)
 """

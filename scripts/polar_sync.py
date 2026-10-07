@@ -28,6 +28,23 @@ z_c sub-arcs K=10; per-branch display nu convention
 author-validated 2026-10-06; the historical +1/−1 produced mirrored
 bows on BOTH branches).
 
+ORIGINAL DISPLAY CONVENTION (Syllable_Synthesis synthSYL.py,
+arcplot/makelooplot — the code behind the article figures): every
+sub-arc is anchored with the departure-side point as polar DEPARTURE
+(pd; the consonant for z_c legs, V1 for vocalic backgrounds) and the
+ARRIVAL-side point carrying the phase (pa = V1 on the z_c approach
+leg, pa = V2 on vocalic backgrounds); theta in [0, pi] for the
+approach leg and [-pi, 0] (opint = -1, first sample dropped) for the
+release legs; rho = cos(theta/2). This anchoring — NOT the phase on
+the arrival consonant — is what makes the closed V->C->V gesture a
+TEARDROP, and it is the REFERENCE convention, not an option. Since
+2026-10-07 the vocalic branch z_v is drawn with the same arcplot form
+(zv_form="arcplot", pd = V1, pa = V2, theta in [-pi, 0], K=30): the
+original display uses ONE interpolation form for both branches.
+zv_form="polar_arc" keeps the historical approximation (Pexp=2 blend
+with mirrored phase sweep; max deviation 0.12 rho units) for the
+record.
+
 nu sign convention — IMPORTANT (keep in sync with polar_primitives.py
 and covtl-pipeline's vtl_synth/video/polar_video.py, which must be
 treated SEPARATELY):
@@ -165,12 +182,23 @@ def record_pipeline(pipeline_fn, blocks_out: list, **pipeline_kwargs):
 def build_branches(blocks: List[dict], n_steps: int,
                    t_step_ms: float = 10.0, sr_display: float = 1000.0,
                    k_v: float = 30.0, k_c: float = 10.0,
-                   nu_v: int = -1, nu_c: int = 1):
+                   nu_v: int = -1, nu_c: int = 1,
+                   zv_form: str = "arcplot"):
     """(z_v, z_c, disp_len) sampled at ``sr_display`` from the blocks.
 
     z_c is non-NaN exactly over cluster blocks, sub-arc by sub-arc
     (dep -> C1 -> ... -> Cm -> arr, T each) so the blue ball reaches
     each consonant target exactly when the label switches to it.
+
+    zv_form="arcplot" (default, original Syllable_Synthesis display):
+    vocalic backgrounds and inter-vowel arcs are drawn with the SAME
+    arcplot form as the z_c sub-arcs (pd = departure anchor, pa =
+    arrival anchor carrying the phase, theta in [-pi, 0], opint = 0,
+    rho = cos(theta/2) — synthSYL.py makelooplot column 1). The
+    original display uses one interpolation form for both branches.
+    zv_form="polar_arc": historical approximation via
+    polar_primitives.polar_arc (Pexp=2 blend, mirrored phase sweep;
+    max deviation 0.12 rho units, loop handedness mirrored).
     """
     from polar_primitives import polar_arc, stationary_point
 
@@ -178,6 +206,11 @@ def build_branches(blocks: List[dict], n_steps: int,
     zv_parts, zc_parts = [], []
 
     def z_arc(dep, arr, n_ms, K, nu):
+        if zv_form == "arcplot":
+            # ORIGINAL vocalic background: arcplot(pd=dep, pa=arr,
+            # [-pi, 0], opint=0, nu, Kvoy, Pexp=1) — synthSYL.py
+            # makelooplot, Tval[:, 1]
+            return z_leg_orig(dep, arr, -np.pi, 0.0, K, nu, n_ms)
         z, _ = polar_arc(dep[0], dep[1], arr[0], arr[1],
                          duration_ms=n_ms, sr=sr_display, K=K, nu=nu,
                          orientation="inverse")
