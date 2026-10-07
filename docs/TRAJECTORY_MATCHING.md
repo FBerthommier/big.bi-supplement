@@ -110,6 +110,54 @@ word-level panels under the same conditions (big | .bi | bi | .gbi;
 display ν_v = −1 / ν_c = +1. Metrics: big = 2 gestures (b, palatal g);
 .bi = 1 (b); bi = 1 (b); .gbi = 1 fused /gb/ span visiting g then b.
 
+### Dot concatenation (C.C) — the reference semantics, and the pause fix (2026-10-07)
+
+Author ruling: **`Syllable_Synthesis` is NOT the reference code for the
+word/syllable-boundary question** (it has no `.`); the reference is
+`FBerthommier/Timit-to-Maeda`. Its documented semantics
+(`synthSYL/parsing.py::_should_split_at_dot`):
+
+* `C.C → split` (keep the syllable boundary) — big.bi: the g|b dot
+  splits big + bi, **no pause block**;
+* `C.V, V.C, V.V → merge` (dot ignored) — bi.gbi: the i|g dot merges,
+  giving the fused /gb/ onset cluster (this is WHY bi.gbi fuses).
+
+And `synthSYL/gesture.py::_insert_syllable_onset_anchors` weights the
+boundary onset anchor with **COEFCEN** (the syllable-chaining
+coefficient), not VOYDEB:
+`weight = (1 − prev_boolast) + COEFCEN·prev_boolast·curr_booldeb`.
+Under the article conditions (COEFCEN = 1) the anchor IS the full
+previous vowel: **the Ve of "big" is coarticulated with the /i/ of
+"bi" — the very definition of the '.' concatenation between two
+consonants.**
+
+Defects fixed accordingly:
+
+1. **Engine** (`synthSYL/gesture.py`): the syllable-onset weight used
+   `delta_o` (VOYDEB, the word-INITIAL onset coefficient) instead of
+   `delta_e` (COEFCEN) — under COEFCEN=1/VOYDEB=0.5 the anchor sat at
+   0.45 instead of the full /i/ (0.9). Fixed to `delta_e` (reference
+   formula). All validated reproductions use symmetric deltas and stay
+   bit-identical (0.000e+00 re-verified after the change).
+2. **Figure 4 inputs**: the left column used the space form
+   `"big bi"`, which inserts the engine's inter-word pause machinery
+   (decay + 160-ms silent arc at factor 1.0 → a 400-ms acoustic gap in
+   `bigbi_delta1.wav`), inherited from `Syllable_Synthesis`'s
+   concatenation loop (`sig = concat(sig, zeros(dur*200), sig1)`).
+   Both `make_article_figures.py` and `run_original_simulations.py`
+   now use the dot form. Measured result: only closure silences remain
+   (~80 ms ≈ T/2 at T=16), matching the author's reference realization
+   (`bi_gbiT100ms.wav`: 45-ms closures at T=100 ms, no word gap).
+   Word/syllable panels: "big"/".bi" are now the two SYLLABLES of
+   big.bi sliced at the C.C boundary (topology: big = 2 excursions
+   b+g; .bi = 1; .gbi = 1 fused) — matching the article panels.
+
+Still on the space form (deliberately, pending author decision): the
+`run_bigbi_polar_sweep.py` δ-sweep videos, whose pause machinery is
+part of the Tp/fusion demonstration. NOTE: `specgram` panels plotting
+in seconds must not share an x-axis set in ms (content squeezed into
+invisibility) — fixed in `make_article_figures.py` figure 4.
+
 ### ν convention — confirmed: no confusion in the engine, only in the display
 
 Verification against Eq. 2 of arXiv:2307.02299

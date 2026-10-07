@@ -1127,12 +1127,17 @@ effect), (c) formant trajectory (S-shaped F2), (d) spectrogram.
 \texttt{original\_simulations/figure4\_bigbi\_bigbi/} (raw script
 output) and \texttt{docs/figures/article\_format/} (article format).
 
-The article's Figure~4 was generated under COEFCEN $= 1$
-($\delta_e = 1$: $V_e = V$) and VOYDEB $= 0.5$ ($\delta_o = 0.5$:
-$V_o$ = half-radius schwa), shown above in article format: the left
-column is big.bi (three separate $z_c$ gestures: /b/, palatal /g/,
-/b/), the right column bi.gbi (two gestures: /b/ + the fused /gb/
-cluster) --- the \S4 syllabification demonstration.
+big.bi is rendered with the \textbf{dot form} (\texttt{big.bi}): per
+the reference \texttt{Timit-to-Maeda} semantics
+(\texttt{\_should\_split\_at\_dot}: C.C $\to$ syllable split, C.V /
+V.C / V.V $\to$ merge), the dot between /g/ and /b/ is a syllable
+boundary with \emph{no pause}, and the Ve of ``big'' is coarticulated
+with the /i/ of ``bi'' (syllable-onset anchor weighted by COEFCEN;
+full /i/ under COEFCEN $= 1$). Under the article figure conditions the
+left column thus shows three consonantal gestures (/b/; then /g/ and
+/b/ chained across the shared /i/) while the right column (bi.gbi,
+whose V.C dot is ignored) shows the fused /gb/ cluster --- the \S4
+syllabification demonstration.
 
 \begin{figure}[h]
 \centering
@@ -1140,11 +1145,19 @@ cluster) --- the \S4 syllabification demonstration.
 \caption{Figure 4, article format
 (\texttt{make\_article\_figures.py}): big.bi $|$ bi.gbi under the
 article figure conditions COEFCEN $= 1$ ($\delta_e$), VOYDEB $= 0.5$
-($\delta_o$), $T=16$. Top: polar planning panels ($z_v$ red loop
-$i \leftrightarrow @$, teardrop $z_c$ gestures: big.bi $= 3$ (b, g,
-b), bi.gbi $= 2$ (b, fused /gb/)). Middle: Maeda parameters with
-phoneme ticks. Bottom: aligned wave + spectrogram. Compare with the
-article's Figure~4 (side-by-side sheet kept outside the repository:
+($\delta_o$), $T=16$, both in the \textbf{dot form} (no pause). big.bi
+is the C.C syllable concatenation: the Ve of ``big'' is coarticulated
+with the /i/ of ``bi'' (the syllable-onset anchor is the full previous
+vowel under COEFCEN $= 1$) --- the only silences are the stop
+closures ($\approx T/2$), as in the reference realization; $z_c$
+carries 3 consonantal gestures (/b/; /g/ then /b/ chained across the
+shared /i/). bi.gbi: the dot between /i/ and /g/ is V.C and therefore
+ignored (syllables merged), giving the fused /gb/ cluster (2
+gestures). Top: polar planning panels (teardrop $z_c$, red $z_v$
+holding the /i/ radius). Middle: Maeda parameters with phoneme ticks.
+Bottom: wave (ms) + spectrogram (s), same total duration. Compare with
+the article's Figure~4 (side-by-side sheet kept outside the
+repository:
 \texttt{P:$\backslash$bigbi-workspace$\backslash$sheet\_fig4.jpg}).}
 \end{figure}
 

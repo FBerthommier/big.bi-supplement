@@ -254,7 +254,17 @@ def run_figure1_ibia():
 # SIMULATION 2: big.bi (δ=1) and bi.gbi (Figure 4)
 # ═══════════════════════════════════════════════════════════════════
 def run_figure4_bigbi():
-    """Figure 4: big.bi (δo=δe=1) and bi.gbi."""
+    """Figure 4: big.bi (δo=δe=1) and bi.gbi.
+
+    big.bi uses the DOT form ("big.bi", C.C syllable boundary, NO
+    pause): per the reference Timit-to-Maeda semantics, the '.' between
+    two consonants concatenates the syllables and the Ve of "big" is
+    coarticulated with the /i/ of "bi" (syllable-onset anchor weighted
+    by COEFCEN; under COEFCEN = 1 it IS the full /i/). The earlier
+    space form ("big bi") inserted an unjustified inter-word pause arc
+    (author ruling 2026-10-07, vs the reference realization
+    bi_gbiT100ms.wav: closures ~T/2 only, no word gap).
+    """
     print("\n" + "=" * 72)
     print("ORIGINAL SIMULATION 2: big.bi (δ=1) and bi.gbi (Figure 4)")
     print("=" * 72)
@@ -264,10 +274,10 @@ def run_figure4_bigbi():
 
     vowels, consonants = get_inventory()
 
-    # Left panel: big.bi with δo=δe=1 (Vo=Ve=V)
-    print(f"\n  [Left] big bi with delta=1.0 (Vo=Ve=V)")
+    # Left panel: big.bi with δo=δe=1 (Vo=Ve=V), dot form (no pause)
+    print(f"\n  [Left] big.bi (dot form) with delta=1.0 (Vo=Ve=V)")
     result_bigbi, blocks_bigbi = run_pipeline_recorded(
-        "big bi", T=T, delta_o=1.0, delta_e=1.0, verbose=True)
+        "big.bi", T=T, delta_o=1.0, delta_e=1.0, verbose=True)
     sig_bigbi, formants_bigbi = synth_and_get_formants(
         result_bigbi, T, FIG4_DIR / "bigbi_delta1.wav")
     z_v_bigbi, z_c_bigbi, _ = display_branches(result_bigbi, blocks_bigbi)
@@ -287,7 +297,7 @@ def run_figure4_bigbi():
     fig, axes = plt.subplots(4, 2, figsize=(16, 16), constrained_layout=True)
 
     for col, (label, result, sig, formants, z_v, z_c) in enumerate([
-        ("big.bi (δ=1)", result_bigbi, sig_bigbi, formants_bigbi, z_v_bigbi, z_c_bigbi),
+        ("big.bi (δ=1, dot form)", result_bigbi, sig_bigbi, formants_bigbi, z_v_bigbi, z_c_bigbi),
         ("bi.gbi", result_bigbi_fused, sig_fused, formants_fused, z_v_fused, z_c_fused),
     ]):
         P = result.Pval

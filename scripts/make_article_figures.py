@@ -91,12 +91,18 @@ MAEDA_COLORS = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728",
                 "#9467bd", "#8c564b", "#e377c2"]
 
 # Article figure-4 conditions (synthSYL legacy naming: COEFCEN = end
-# coefficient -> delta_e, VOYDEB = onset coefficient -> delta_o)
+# coefficient -> delta_e, VOYDEB = onset coefficient -> delta_o).
+# big.bi is rendered with the DOT form (syllable boundary, no pause):
+# per the reference Timit-to-Maeda semantics (_should_split_at_dot:
+# C.C -> split; the '.' concatenation between two consonants), the Ve
+# of "big" is coarticulated with the /i/ of "bi" — the syllable-onset
+# anchor is the full previous vowel under COEFCEN = 1 (author ruling
+# 2026-10-07; the space form "big bi" would insert an unjustified
+# pause arc). bi.gbi: the dot between i and g is V.C -> ignored
+# (merged), giving the fused /gb/ cluster.
 DELTA_O_FIG4 = 0.5
 DELTA_E_FIG4 = 1.0
 T_FIG4 = 16
-PAUSEKW = dict(short_pause_duration_factor=1.0,
-               long_pause_duration_factor=1.0)
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -490,7 +496,7 @@ def figure3():
 # ═══════════════════════════════════════════════════════════════════
 def _fig4_case(text):
     result, blocks = run_recorded(text, T=T_FIG4, delta_o=DELTA_O_FIG4,
-                                  delta_e=DELTA_E_FIG4, **PAUSEKW)
+                                  delta_e=DELTA_E_FIG4)
     labels, _ = polar_sync.build_labels(blocks, result.seg_map)
     z_v, z_c = branches(blocks, result.Pval.shape[0])
     sig, formants = synth(result, T_FIG4)
@@ -502,7 +508,7 @@ def figure4():
     print("ARTICLE FIGURE 4: big.bi | bi.gbi "
           f"(COEFCEN=1, VOYDEB=0.5, T={T_FIG4})")
     print("=" * 72)
-    cases = [("big.bi", "big bi"), ("bi.gbi", "bi.gbi")]
+    cases = [("big.bi", "big.bi"), ("bi.gbi", "bi.gbi")]
     data = {}
     for title, text in cases:
         data[title] = _fig4_case(text)
@@ -580,11 +586,15 @@ def figure4():
             ax.set_title("Wave + spectrogram (aligned)", fontsize=10,
                          fontweight="bold")
 
-        ax = fig.add_subplot(gs[3, col], sharex=ax)
+        # spectrogram: specgram plots in SECONDS — do NOT share the
+        # wave axes' millisecond x-range (the content would be squeezed
+        # into the first 2 ms of the axis and become invisible)
+        ax = fig.add_subplot(gs[3, col])
         ax.specgram(sig_f, NFFT=256, Fs=FS_AUDIO, noverlap=192,
                     cmap="Greys", scale="dB")
+        ax.set_xlim(0, len(sig_f) / FS_AUDIO)
         ax.set_ylim(0, 4000)
-        ax.set_xlabel("Time (ms)", fontsize=10)
+        ax.set_xlabel("Time (s)", fontsize=10)
         ax.set_ylabel("Frequency (Hz)", fontsize=9)
 
     fig.suptitle("Figure 4: big.bi (δo=0.5, δe=1) | bi.gbi — planning, "
@@ -612,7 +622,10 @@ def figure4():
             k = int(np.argmax(np.abs(seg)))
             apexes.append((round(float(np.degrees(np.angle(seg[k]))) % 360),
                            round(float(abs(seg[k])), 2)))
-        print(f"  {title}: {len(spans)} z_c span(s), apexes={apexes}")
+        n_gest = sum(1 for k, _, _ in label_runs(labels)
+                     if k in CONSONANTS_SYNTSYL)
+        print(f"  {title}: {len(spans)} z_c span(s) "
+              f"({n_gest} cluster gestures), apexes={apexes}")
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -668,11 +681,11 @@ def panels():
 
     # ── 2-panel big.bi / bi.gbi (fig_bigbi_article_conditions_nu_inv) ──
     fig, axes = plt.subplots(1, 2, figsize=(13, 6.6))
-    for ax, (title, text) in zip(axes, [("big.bi", "big bi"),
+    for ax, (title, text) in zip(axes, [("big.bi", "big.bi"),
                                         ("bi.gbi", "bi.gbi")]):
         result, blocks = run_recorded(text, T=T_FIG4,
                                       delta_o=DELTA_O_FIG4,
-                                      delta_e=DELTA_E_FIG4, **PAUSEKW)
+                                      delta_e=DELTA_E_FIG4)
         z_v, z_c = branches(blocks, result.Pval.shape[0])
         _cartesian_polar_axes(ax)
         _draw_branches(ax, z_v, z_c)
@@ -696,7 +709,9 @@ def panels():
                  "COEFCEN = 1 ($\\delta_e$: Ve = V), VOYDEB = 0.5 "
                  "($\\delta_o$: Vo = half radius), $\\nu_v$=−1, "
                  "$\\nu_c$=+1\narXiv:2307.02299 Fig. 4 conditions, T=16 "
-                 "(big.bi with inter-word pause; bi.gbi single word)",
+                 "(dot form: big.bi = C.C syllable boundary, no pause — "
+                 "the Ve of 'big' is coarticulated with the /i/ of 'bi'; "
+                 "bi.gbi: V.C dot ignored -> fused /gb/)",
                  fontsize=12, fontweight="bold")
     fig.tight_layout(rect=[0, 0, 1, 0.92])
     out = FIG_DIR / "fig_bigbi_article_conditions_nu_inv.png"
@@ -706,27 +721,26 @@ def panels():
 
     # ── 4 word panels big | .bi | bi | .gbi (fig_words_..._nu_inv) ──
     def slice_word2(blocks_, syllable_dot=False):
+        """Syllable-2 slice of a dotted word. big.bi: the C.C boundary
+        sits between the /g/ cluster and the /b/ cluster (the 3rd
+        cluster block). bi.gbi: the V.C dot is ignored (fused /gb/),
+        so the syllable slice starts at the LAST cluster block."""
+        cluster_idx = [k for k, b in enumerate(blocks_)
+                       if b["kind"] == "cluster"]
         if syllable_dot:
-            last = max(k for k, b in enumerate(blocks_)
-                       if b["kind"] == "cluster")
-            return blocks_[last:]
-        seen = False
-        for k, b in enumerate(blocks_):
-            if b["kind"] == "decay":
-                seen = True
-                continue
-            if seen and b["kind"] == "arc":
-                return blocks_[k:]
+            return blocks_[cluster_idx[-1]:]
+        if len(cluster_idx) >= 3:
+            return blocks_[cluster_idx[2]:]
         raise ValueError("boundary not found")
 
-    r_gbg, bl_gbg = run_recorded("big bi", T=T_FIG4, delta_o=DELTA_O_FIG4,
-                                 delta_e=DELTA_E_FIG4, **PAUSEKW)
+    r_gbg, bl_gbg = run_recorded("big.bi", T=T_FIG4, delta_o=DELTA_O_FIG4,
+                                 delta_e=DELTA_E_FIG4)
     w2 = slice_word2(bl_gbg)
     w1 = bl_gbg[:len(bl_gbg) - len(w2)]
     r_bi, bl_bi = run_recorded("bi", T=T_FIG4, delta_o=DELTA_O_FIG4,
-                               delta_e=DELTA_E_FIG4, **PAUSEKW)
+                               delta_e=DELTA_E_FIG4)
     r_gbi, bl_gbi = run_recorded("bi.gbi", T=T_FIG4, delta_o=DELTA_O_FIG4,
-                                 delta_e=DELTA_E_FIG4, **PAUSEKW)
+                                 delta_e=DELTA_E_FIG4)
     w_gbi = slice_word2(bl_gbi, syllable_dot=True)
     w_bi = bl_gbi[:len(bl_gbi) - len(w_gbi)]
 
@@ -753,11 +767,14 @@ def panels():
             apexes.append((round(float(np.degrees(np.angle(seg[kk]))) % 360),
                            round(float(abs(seg[kk])), 2)))
         print(f"  {name:>4}: {len(spans)} z_c span(s), apexes={apexes}")
-    fig.suptitle("Word-level planning under the article figure conditions — "
-                 "COEFCEN = 1 ($\\delta_e$), VOYDEB = 0.5 ($\\delta_o$), "
-                 "T=16, $z_v$ K=30 / $z_c$ K=10, display $\\nu_v$=−1 / "
-                 "$\\nu_c$=+1\n('.bi' = word 2 of big.bi sliced at the "
-                 "pause; '.gbi' = syllable 2 of bi.gbi sliced at the dot)",
+    fig.suptitle("Syllable-level planning under the article figure "
+                 "conditions — COEFCEN = 1 ($\\delta_e$), VOYDEB = 0.5 "
+                 "($\\delta_o$), T=16, $z_v$ K=30 / $z_c$ K=10, display "
+                 "$\\nu_v$=−1 / $\\nu_c$=+1\n('big' / '.bi' = the two "
+                 "syllables of big.bi sliced at the C.C boundary (no "
+                 "pause; the shared /i/ carries the Ve of 'big' and the "
+                 "/i/ of 'bi'); '.gbi' = syllable 2 of bi.gbi, whose "
+                 "V.C dot is ignored -> fused /gb/)",
                  fontsize=11.5, fontweight="bold")
     fig.tight_layout(rect=[0, 0, 1, 0.90])
     out = FIG_DIR / "fig_words_article_conditions_nu_inv.png"
@@ -766,8 +783,8 @@ def panels():
     print(f"  saved: {out}")
 
     # ── planning_4panels_syntsyl (delta_o = delta_e = 0.5) ──
-    KW = dict(T=T_FIG4, verbose=False, delta_o=0.5, delta_e=0.5, **PAUSEKW)
-    r_bigbi, bl_bigbi = run_recorded("big bi", **KW)
+    KW = dict(T=T_FIG4, verbose=False, delta_o=0.5, delta_e=0.5)
+    r_bigbi, bl_bigbi = run_recorded("big.bi", **KW)
     r_bi2, bl_bi2 = run_recorded("bi", **KW)
     r_gbi2, bl_gbi2 = run_recorded("gbi", **KW)
     w2b = slice_word2(bl_bigbi)

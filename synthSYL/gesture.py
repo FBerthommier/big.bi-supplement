@@ -438,12 +438,20 @@ def _insert_vowel_onset_anchors(anchors: list[GestureAnchor],
 
 def _insert_syllable_onset_anchors(anchors: list[GestureAnchor],
                                    syl_boundary_info: list[SyllableBoundary] | None,
-                                   delta_o: float = DEFAULT_DELTA_O) -> list[GestureAnchor]:
+                                   delta_e: float = DEFAULT_DELTA_E) -> list[GestureAnchor]:
     """Insert syllable-onset anchors (Vo) at inter-syllable boundaries.
 
-    Vo = (delta_o * rho_vowel, theta_vowel) — Berthommier (2023, §2.2).
-    When C.C boundary: weight = delta_o * rho_prev_vowel (schwa-like vocoid
-    when delta_o is small, full vowel V when delta_o → 1).
+    Vo = (weight * rho_prev_vowel, theta_prev_vowel) with
+    weight = (1 - prev_boolast) + delta_e * prev_boolast * curr_booldeb —
+    the reference (Timit-to-Maeda) formula, which runs on COEFCEN: the
+    syllable-chaining coefficient, NOT VOYDEB (delta_o, the
+    word/utterance-initial onset weight). Legacy naming: VOYDEB applies
+    to the début (word-initial Vo); COEFCEN (delta_e) chains syllables —
+    it also sets the Ve, so under COEFCEN = 1 the syllable-onset anchor
+    IS the full previous vowel: the Ve of the coda syllable is
+    coarticulated with the next syllable's vowel (the very definition of
+    the '.' C.C concatenation, e.g. big.bi: the Ve of "big" merges with
+    the /i/ of "bi" — author ruling 2026-10-07).
     """
     if not syl_boundary_info:
         return anchors
@@ -461,7 +469,7 @@ def _insert_syllable_onset_anchors(anchors: list[GestureAnchor],
 
         prev_last_rho, prev_last_theta = _find_last_vowel_in_segs(prev_segs)
 
-        weight = (1 - prev_boolast) + delta_o * prev_boolast * curr_booldeb
+        weight = (1 - prev_boolast) + delta_e * prev_boolast * curr_booldeb
         vd_rho = weight * prev_last_rho
         vd_theta = prev_last_theta
 
@@ -508,6 +516,6 @@ def build_gesture_anchors(nodes: list[GestureNode],
     anchors = _insert_word_end_anchors(anchors, nodes, delta_e=delta_e)
     anchors = _insert_vowel_onset_anchors(anchors, nodes, word_starts,
                                           delta_o=delta_o, delta_e=delta_e)
-    anchors = _insert_syllable_onset_anchors(anchors, syl_boundary_info, delta_o=delta_o)
+    anchors = _insert_syllable_onset_anchors(anchors, syl_boundary_info, delta_e=delta_e)
     anchors = _ensure_terminal_anchors(anchors, len(nodes))
     return anchors
