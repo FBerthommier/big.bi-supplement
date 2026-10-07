@@ -12,12 +12,15 @@ Principe
 --------
 Pour chaque Tp (12 valeurs, 100 ms → 0 ms) :
   1. Re-démarre le pipeline synthSYL pour "ib ib" avec le Tp et δ couplé
-  2. Reconstruit les deux branches dans le plan complexe :
-       z_v (rouge) : branche vocalique, arc anchor→anchor (K=30, ν=+1)
+     (helpers de trajectoire instrumentés : polar_sync.record_pipeline)
+  2. Reconstruit les deux branches depuis la séquence de blocs ENREGISTRÉE
+     (ancrage d'affichage original Syllable_Synthesis — pd côté départ,
+     phase sur pa, θ∈[0,π]/[−π,0] — cf. docs/DISPLAY_VS_ENGINE.md) :
+       z_v (rouge) : branche vocalique, même forme arcplot (K=30, ν=−1)
                      + plateaux stationnaires aux voyelles tenues
        z_c (bleu)  : branche consonantique, n'existe que pendant les
                      clusters /b/ — sub-arcs dep→C₁→...→Cₘ→arr
-                     (K=10, ν=-1, article §2.1)
+                     (K=10, ν=+1, article §2.1) en LARME (teardrop)
   3. Génère :
        - une figure polaire statique (.png)
        - une vidéo polaire dynamique (trajectoire qui se déroule avec
@@ -71,10 +74,12 @@ import cv2  # noqa: E402
 # Repo paths
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
+sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
-# Standalone polar primitives (numerically identical to the original
-# vtl_synth.core.polar implementation)
-from polar_primitives import polar_arc, stationary_point  # noqa: E402
+# Engine-block-synchronized display reconstruction (original
+# Syllable_Synthesis arcplot anchoring: pd on the departure side, phase
+# on pa — teardrop z_c, arcplot z_v, display nu_v=-1 / nu_c=+1)
+import polar_sync  # noqa: E402
 
 from synthSYL import panphon_pipeline  # noqa: E402
 from synthSYL.phonology import VOWELS_SYNTSYL, CONSONANTS_SYNTSYL  # noqa: E402
@@ -137,142 +142,16 @@ def get_phoneme_inventory():
 # ═══════════════════════════════════════════════════════════════════
 # Polar branch reconstruction
 # ═══════════════════════════════════════════════════════════════════
-def reconstruct_polar_branches(result, pause_ms: float = 0.0):
-    """Reconstruct the vocalic (z_v) and consonantal (z_c) branches.
-
-    Walks through the anchors and nodes emitted by the synthSYL pipeline
-    and rebuilds the two trajectories in the complex plane, using the
-    reference display geometry (K=30, ν=+1 vocalic; K=10, ν=-1 consonantal,
-    article §2.1).
-
-    Parameters
-    ----------
-    result : PipelineResult
-        Output of synthSYL.panphon_pipeline (with .anchors, .nodes, .Pval).
-    pause_ms : float
-        Pause duration in ms (used to set the inter-word pause arc length).
-
-    Returns
-    -------
-    z_v : np.ndarray of complex, length n_steps
-    z_c : np.ndarray of complex, length n_steps (NaN where inactive)
-    n_steps : int (Pval.shape[0])
-    """
-    anchors = result.anchors
-    nodes = result.nodes
-    n_steps = result.Pval.shape[0]
-
-    z_v_list = []
-    z_c_list = []
-    prev_pt = None  # [rho, theta] of last vowel anchor seen
-
-    T_voy_ms = T_BASE * T_STEP_MS            # 50 ms (one plateau)
-    T_voy_arc_ms = 2 * T_voy_ms              # 100 ms (V→V background)
-    T_cons_ms = T_BASE * T_STEP_MS           # 50 ms (per sub-arc in cluster)
-    T_pause_ms = max(pause_ms, T_STEP_MS)   # min 1 frame = 10 ms (max(1, ...) clamp)
-
-    for idx in range(len(anchors) - 1):
-        A = anchors[idx]
-        B = anchors[idx + 1]
-
-        a_is_term = A.kind in ("pause", "synth")
-        b_is_term = B.kind in ("pause", "synth")
-        a_is_vowel = A.kind == "V"
-        b_is_vowel = B.kind == "V"
-
-        # Hold plateau (only at vowel held anchors, not onset/word_end)
-        if A.hold and a_is_vowel and not A.is_vowel_onset and not A.is_word_end:
-            z, _ = stationary_point(A.pt[0], A.pt[1],
-                                    duration_ms=T_voy_ms, sr=SR_GESTURE)
-            z_v_list.append(z)
-            z_c_list.append(np.full_like(z, np.nan + 0j))
-            prev_pt = A.pt
-
-        # Collect consonants between A and B
-        search_start = A.i + 1 if not A.is_vowel_onset else A.i
-        search_end = B.i
-        consonants = [nodes[k] for k in range(search_start, search_end)
-                      if 0 <= k < len(nodes) and nodes[k].kind == "C"]
-        m = len(consonants)
-
-        # Case: A is vowel and B is vowel (cluster or background)
-        if a_is_vowel and b_is_vowel:
-            if m > 0:
-                # Cluster: vocalic background arc + consonantal sub-arcs
-                dur_ms = (m + 1) * T_cons_ms
-                z_v, _ = polar_arc(A.pt[0], A.pt[1],
-                                   B.pt[0], B.pt[1],
-                                   duration_ms=dur_ms, sr=SR_GESTURE,
-                                   K=K_DISPLAY, nu=1, orientation="inverse")
-                z_v_list.append(z_v)
-                # Consonantal sub-arcs: A → C₁ → ... → Cₘ → B
-                points = [A.pt] + [[c.rho, c.theta] for c in consonants] + [B.pt]
-                z_c_block = []
-                for j in range(len(points) - 1):
-                    p1, p2 = points[j], points[j + 1]
-                    z_c, _ = polar_arc(p1[0], p1[1], p2[0], p2[1],
-                                       duration_ms=T_cons_ms, sr=SR_GESTURE,
-                                       K=K_C_DISPLAY, nu=-1, orientation="inverse")
-                    z_c_block.append(z_c)
-                z_c_concat = np.concatenate(z_c_block)
-                # Pad to match z_v length
-                if len(z_c_concat) < len(z_v):
-                    pad = np.full(len(z_v) - len(z_c_concat), np.nan + 0j)
-                    z_c_concat = np.concatenate([z_c_concat, pad])
-                elif len(z_c_concat) > len(z_v):
-                    z_c_concat = z_c_concat[:len(z_v)]
-                z_c_list.append(z_c_concat)
-            else:
-                # Background arc A→B
-                z_v, _ = polar_arc(A.pt[0], A.pt[1],
-                                   B.pt[0], B.pt[1],
-                                   duration_ms=T_voy_arc_ms, sr=SR_GESTURE,
-                                   K=K_DISPLAY, nu=1, orientation="inverse")
-                z_v_list.append(z_v)
-                z_c_list.append(np.full_like(z_v, np.nan + 0j))
-            prev_pt = B.pt
-
-        # Case: A is vowel, B is terminal (pause/synth) — decay block at A
-        elif a_is_vowel and b_is_term:
-            # Decay block at A
-            z, _ = stationary_point(A.pt[0], A.pt[1],
-                                    duration_ms=T_cons_ms, sr=SR_GESTURE)
-            z_v_list.append(z)
-            z_c_list.append(np.full_like(z, np.nan + 0j))
-            prev_pt = A.pt
-
-        # Case: A is terminal, B is vowel — arc from prev_pt to B
-        elif a_is_term and b_is_vowel:
-            if prev_pt is not None:
-                # Use the actual pause duration (T_pause_ms) for the arc
-                z_v, _ = polar_arc(prev_pt[0], prev_pt[1],
-                                   B.pt[0], B.pt[1],
-                                   duration_ms=T_pause_ms, sr=SR_GESTURE,
-                                   K=K_DISPLAY, nu=1, orientation="inverse")
-                z_v_list.append(z_v)
-                z_c_list.append(np.full_like(z_v, np.nan + 0j))
-            prev_pt = B.pt
-
-    # Concatenate
-    if z_v_list:
-        z_v = np.concatenate([np.asarray(z, dtype=complex) for z in z_v_list])
-        z_c = np.concatenate([np.asarray(z, dtype=complex) for z in z_c_list])
-    else:
-        z_v = np.zeros(n_steps, dtype=complex)
-        z_c = np.full(n_steps, np.nan + 0j)
-
-    # Pad/trim to n_steps
-    if len(z_v) < n_steps:
-        last = z_v[-1] if len(z_v) > 0 else 0
-        z_v = np.concatenate([z_v, np.full(n_steps - len(z_v), last)])
-    else:
-        z_v = z_v[:n_steps]
-    if len(z_c) < n_steps:
-        z_c = np.concatenate([z_c, np.full(n_steps - len(z_c), np.nan + 0j)])
-    else:
-        z_c = z_c[:n_steps]
-
-    return z_v, z_c, n_steps
+def display_branches(blocks, n_steps):
+    """(z_v, z_c, n_steps) at the 100 Hz display grid from the RECORDED
+    engine block sequence (polar_sync.record_pipeline), with the
+    original Syllable_Synthesis display anchoring: pd on the departure
+    side (the consonant on z_c approach legs), phase on the arrival
+    point pa, theta in [0, pi] / [-pi, 0] — teardrop z_c (K=10), z_v
+    with the same arcplot form (K=30), display nu_v=-1 / nu_c=+1."""
+    return polar_sync.build_branches(
+        blocks, n_steps, t_step_ms=T_STEP_MS, sr_display=SR_GESTURE,
+        k_v=K_DISPLAY, k_c=K_C_DISPLAY, nu_v=-1, nu_c=1)
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -619,11 +498,14 @@ def main() -> int:
         t0 = time.time()
         print(f"[{i+1}/{len(PAUSE_MS_VALUES)}] Tp = {pause_ms:.0f} ms")
 
-        # Re-run pipeline to get anchors + nodes
+        # Re-run pipeline with instrumented trajectory helpers so the
+        # display branches are rebuilt from the engine's block sequence
         factor = factor_for_pause_ms(pause_ms)
         delta = delta_for_pause_ms(pause_ms)
-        result = panphon_pipeline(
-            "ib ib",
+        blocks = []
+        result = polar_sync.record_pipeline(
+            panphon_pipeline, blocks,
+            text="ib ib",
             T=T_BASE,
             short_pause_duration_factor=factor,
             long_pause_duration_factor=max(factor, 1.0),
@@ -634,8 +516,8 @@ def main() -> int:
             print(f"  ✗ Pipeline failed")
             return 1
 
-        # Reconstruct branches
-        z_v, z_c, n_steps = reconstruct_polar_branches(result, pause_ms=pause_ms)
+        # Reconstruct branches from the recorded blocks (100 Hz grid)
+        z_v, z_c, n_steps = display_branches(blocks, result.Pval.shape[0])
         print(f"  z_v: {len(z_v)} samples   z_c: {np.sum(~np.isnan(z_c.real))} active samples")
 
         # Save z_v, z_c

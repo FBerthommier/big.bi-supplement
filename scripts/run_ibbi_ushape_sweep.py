@@ -55,7 +55,6 @@ import cv2  # noqa: E402
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
-from polar_primitives import polar_arc, stationary_point  # noqa: E402
 import polar_sync  # noqa: E402
 from synthSYL import panphon_pipeline  # noqa: E402
 from synthSYL.phonology import VOWELS_SYNTSYL, CONSONANTS_SYNTSYL  # noqa: E402
@@ -194,111 +193,6 @@ def synthesize_wav(result, state, config, out_path: Path) -> np.ndarray:
     from scipy.io.wavfile import write as wav_write
     wav_write(str(out_path), FS_AUDIO, sig_int16)
     return sig_int16
-
-
-# ═══════════════════════════════════════════════════════════════════
-# Polar branch reconstruction
-# ═══════════════════════════════════════════════════════════════════
-def reconstruct_polar_branches(result, pause_ms: float = 0.0):
-    anchors = result.anchors
-    nodes = result.nodes
-    n_steps = result.Pval.shape[0]
-
-    z_v_list, z_c_list = [], []
-    prev_pt = None
-
-    T_voy_ms = T_BASE * T_STEP_MS
-    T_voy_arc_ms = 2 * T_voy_ms
-    T_cons_ms = T_BASE * T_STEP_MS
-    T_pause_ms = max(pause_ms, T_STEP_MS)
-
-    for idx in range(len(anchors) - 1):
-        A = anchors[idx]
-        B = anchors[idx + 1]
-        a_is_term = A.kind in ("pause", "synth")
-        b_is_term = B.kind in ("pause", "synth")
-        a_is_vowel = A.kind == "V"
-        b_is_vowel = B.kind == "V"
-
-        if A.hold and a_is_vowel and not A.is_vowel_onset and not A.is_word_end:
-            z, _ = stationary_point(A.pt[0], A.pt[1],
-                                    duration_ms=T_voy_ms, sr=SR_GESTURE)
-            z_v_list.append(z)
-            z_c_list.append(np.full_like(z, np.nan + 0j))
-            prev_pt = A.pt
-
-        search_start = A.i + 1 if not A.is_vowel_onset else A.i
-        search_end = B.i
-        consonants = [nodes[k] for k in range(search_start, search_end)
-                      if 0 <= k < len(nodes) and nodes[k].kind == "C"]
-        m = len(consonants)
-
-        if a_is_vowel and b_is_vowel:
-            if m > 0:
-                dur_ms = (m + 1) * T_cons_ms
-                z_v, _ = polar_arc(A.pt[0], A.pt[1], B.pt[0], B.pt[1],
-                                   duration_ms=dur_ms, sr=SR_GESTURE,
-                                   K=K_DISPLAY, nu=1, orientation="inverse")
-                z_v_list.append(z_v)
-                points = [A.pt] + [[c.rho, c.theta] for c in consonants] + [B.pt]
-                z_c_block = []
-                for j in range(len(points) - 1):
-                    p1, p2 = points[j], points[j + 1]
-                    z_c, _ = polar_arc(p1[0], p1[1], p2[0], p2[1],
-                                       duration_ms=T_cons_ms, sr=SR_GESTURE,
-                                       K=K_C_DISPLAY, nu=-1, orientation="inverse")
-                    z_c_block.append(z_c)
-                z_c_concat = np.concatenate(z_c_block)
-                if len(z_c_concat) < len(z_v):
-                    pad = np.full(len(z_v) - len(z_c_concat), np.nan + 0j)
-                    z_c_concat = np.concatenate([z_c_concat, pad])
-                elif len(z_c_concat) > len(z_v):
-                    z_c_concat = z_c_concat[:len(z_v)]
-                z_c_list.append(z_c_concat)
-            else:
-                z_v, _ = polar_arc(A.pt[0], A.pt[1], B.pt[0], B.pt[1],
-                                   duration_ms=T_voy_arc_ms, sr=SR_GESTURE,
-                                   K=K_DISPLAY, nu=1, orientation="inverse")
-                z_v_list.append(z_v)
-                z_c_list.append(np.full_like(z_v, np.nan + 0j))
-            prev_pt = B.pt
-        elif a_is_vowel and b_is_term:
-            z, _ = stationary_point(A.pt[0], A.pt[1],
-                                    duration_ms=T_cons_ms, sr=SR_GESTURE)
-            z_v_list.append(z)
-            z_c_list.append(np.full_like(z, np.nan + 0j))
-            prev_pt = A.pt
-        elif a_is_term and b_is_vowel:
-            if prev_pt is not None:
-                z_v, _ = polar_arc(prev_pt[0], prev_pt[1],
-                                   B.pt[0], B.pt[1],
-                                   duration_ms=T_pause_ms, sr=SR_GESTURE,
-                                   K=K_DISPLAY, nu=1, orientation="inverse")
-                z_v_list.append(z_v)
-                z_c_list.append(np.full_like(z_v, np.nan + 0j))
-            else:
-                n = int(T_pause_ms * SR_GESTURE / 1000)
-                z_v_list.append(np.full(max(n, 1), np.nan + 0j, dtype=complex))
-                z_c_list.append(np.full(max(n, 1), np.nan + 0j, dtype=complex))
-            prev_pt = B.pt
-
-    if z_v_list:
-        z_v = np.concatenate([np.asarray(z, dtype=complex) for z in z_v_list])
-        z_c = np.concatenate([np.asarray(z, dtype=complex) for z in z_c_list])
-    else:
-        z_v = np.zeros(n_steps, dtype=complex)
-        z_c = np.full(n_steps, np.nan + 0j)
-
-    if len(z_v) < n_steps:
-        last = z_v[-1] if len(z_v) > 0 else 0
-        z_v = np.concatenate([z_v, np.full(n_steps - len(z_v), last)])
-    else:
-        z_v = z_v[:n_steps]
-    if len(z_c) < n_steps:
-        z_c = np.concatenate([z_c, np.full(n_steps - len(z_c), np.nan + 0j)])
-    else:
-        z_c = z_c[:n_steps]
-    return z_v, z_c, n_steps
 
 
 # ═══════════════════════════════════════════════════════════════════

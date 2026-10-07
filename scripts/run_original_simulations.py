@@ -27,9 +27,10 @@ K=10, Kvoy=30, Pexp=1, nu=-1, valrect=0.75.
 Output: <repo>/output/article_original_simulations/
 
 The generated .npz are then compared against the reference copies in
-<repo>/original_simulations/ (Pval/formants must match to ~1e-12; the
-display branches z_v/z_c are checked separately since K_DISPLAY only
-affects display, not the acoustic engine).
+<repo>/original_simulations/ (engine arrays Pval/formants/sig must
+match at 0.000e+00; the display branches z_v/z_c are rebuilt with the
+original Syllable_Synthesis arcplot anchoring via polar_sync — teardrop
+z_c, arcplot z_v — see docs/DISPLAY_VS_ENGINE.md).
 """
 
 from __future__ import annotations
@@ -58,8 +59,9 @@ plt.rcParams["axes.unicode_minus"] = False
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
+sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
-from polar_primitives import polar_arc, stationary_point  # noqa: E402
+import polar_sync  # noqa: E402
 from synthSYL import panphon_pipeline  # noqa: E402
 from synthSYL.phonology import VOWELS_SYNTSYL, CONSONANTS_SYNTSYL  # noqa: E402
 import vlam  # noqa: E402
@@ -118,91 +120,30 @@ def synth_and_get_formants(result, T_base, out_wav=None):
     return sig, formants
 
 
-def reconstruct_polar(result, T_base, pause_ms=0.0):
-    """Reconstruct z_v and z_c branches."""
-    anchors = result.anchors
-    nodes = result.nodes
-    n_steps = result.Pval.shape[0]
-    z_v_list, z_c_list = [], []
-    prev_pt = None
-    T_voy = T_base * T_STEP_MS
-    T_cons = T_base * T_STEP_MS
-    T_pause = max(pause_ms, T_STEP_MS)
+def run_pipeline_recorded(text, T, **kwargs):
+    """Run panphon_pipeline under polar_sync instrumentation.
 
-    for idx in range(len(anchors) - 1):
-        A, B = anchors[idx], anchors[idx + 1]
-        a_term = A.kind in ("pause", "synth")
-        b_term = B.kind in ("pause", "synth")
-        a_v = A.kind == "V"
-        b_v = B.kind == "V"
+    Records the engine's actual block sequence; the display branches
+    are rebuilt from those blocks by polar_sync.build_branches
+    (original Syllable_Synthesis arcplot anchoring — teardrop z_c,
+    arcplot z_v; see docs/DISPLAY_VS_ENGINE.md). The engine arrays
+    (Pval/formants/sig) are identical to a direct panphon_pipeline
+    call — the reference gate stays 0.000e+00 for every engine array.
+    """
+    blocks: list = []
+    result = polar_sync.record_pipeline(
+        panphon_pipeline, blocks, text=text, T=T, **kwargs)
+    return result, blocks
 
-        if A.hold and a_v and not A.is_vowel_onset and not A.is_word_end:
-            z, _ = stationary_point(A.pt[0], A.pt[1], T_voy, SR_DISPLAY)
-            z_v_list.append(z)
-            z_c_list.append(np.full_like(z, np.nan + 0j))
-            prev_pt = A.pt
 
-        ss = A.i + 1 if not A.is_vowel_onset else A.i
-        cons = [nodes[k] for k in range(ss, B.i)
-                if 0 <= k < len(nodes) and nodes[k].kind == "C"]
-        m = len(cons)
-
-        if a_v and b_v:
-            if m > 0:
-                dur = (m + 1) * T_cons
-                z_v, _ = polar_arc(A.pt[0], A.pt[1], B.pt[0], B.pt[1],
-                                   dur, SR_DISPLAY, K_DISPLAY, 1, "inverse")
-                z_v_list.append(z_v)
-                pts = [A.pt] + [[c.rho, c.theta] for c in cons] + [B.pt]
-                zc_blocks = []
-                for j in range(len(pts) - 1):
-                    zc, _ = polar_arc(pts[j][0], pts[j][1], pts[j+1][0], pts[j+1][1],
-                                      T_cons, SR_DISPLAY, K_C_DISPLAY, -1, "inverse")
-                    zc_blocks.append(zc)
-                zc = np.concatenate(zc_blocks)
-                if len(zc) < len(z_v):
-                    zc = np.concatenate([zc, np.full(len(z_v) - len(zc), np.nan + 0j)])
-                z_c_list.append(zc)
-            else:
-                z_v, _ = polar_arc(A.pt[0], A.pt[1], B.pt[0], B.pt[1],
-                                   2 * T_voy, SR_DISPLAY, K_DISPLAY, 1, "inverse")
-                z_v_list.append(z_v)
-                z_c_list.append(np.full_like(z_v, np.nan + 0j))
-            prev_pt = B.pt
-        elif a_v and b_term:
-            z, _ = stationary_point(A.pt[0], A.pt[1], T_cons, SR_DISPLAY)
-            z_v_list.append(z)
-            z_c_list.append(np.full_like(z, np.nan + 0j))
-            prev_pt = A.pt
-        elif a_term and b_v:
-            if prev_pt is not None:
-                z_v, _ = polar_arc(prev_pt[0], prev_pt[1], B.pt[0], B.pt[1],
-                                   T_pause, SR_DISPLAY, K_DISPLAY, 1, "inverse")
-                z_v_list.append(z_v)
-                z_c_list.append(np.full_like(z_v, np.nan + 0j))
-            prev_pt = B.pt
-
-    if z_v_list:
-        z_v = np.concatenate([np.asarray(z, dtype=complex) for z in z_v_list])
-        z_c = np.concatenate([np.asarray(z, dtype=complex) for z in z_c_list])
-    else:
-        z_v = np.zeros(n_steps, dtype=complex)
-        z_c = np.full(n_steps, np.nan + 0j)
-    # Align to the DISPLAY-rate length (SR_DISPLAY = 10 x SR_GESTURE),
-    # not the engine step count: the branches are sampled at SR_DISPLAY.
-    # (Aligning on n_steps kept only the first 10% of the trajectory and
-    # made z_c entirely NaN — see docs/POLAR_K_AUDIT.md.)
-    disp_len = int(round(n_steps * SR_DISPLAY / SR_GESTURE))
-    if len(z_v) < disp_len:
-        last = z_v[-1] if len(z_v) else 0
-        z_v = np.concatenate([z_v, np.full(disp_len - len(z_v), last, dtype=complex)])
-    else:
-        z_v = z_v[:disp_len]
-    if len(z_c) < disp_len:
-        z_c = np.concatenate([z_c, np.full(disp_len - len(z_c), np.nan + 0j, dtype=complex)])
-    else:
-        z_c = z_c[:disp_len]
-    return z_v, z_c, disp_len
+def display_branches(result, blocks):
+    """(z_v, z_c, disp_len) from the recorded blocks, SR_DISPLAY rate,
+    K=30/10, display nu_v=-1 / nu_c=+1 (original arcplot form)."""
+    z_v, z_c, n_disp = polar_sync.build_branches(
+        blocks, result.Pval.shape[0], t_step_ms=T_STEP_MS,
+        sr_display=SR_DISPLAY, k_v=K_DISPLAY, k_c=K_C_DISPLAY,
+        nu_v=-1, nu_c=1)
+    return z_v, z_c, n_disp
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -219,7 +160,7 @@ def run_figure1_ibia():
     print(f"  T={T} (={T*T_STEP_MS}ms per period, matching article T=100ms)")
     print(f"  K=10, Kvoy=30, Pexp=1, valrect={VALRECT}")
 
-    result = panphon_pipeline("ibia", T=T, verbose=True)
+    result, blocks = run_pipeline_recorded("ibia", T=T, verbose=True)
     if result is None:
         print("  FAILED")
         return
@@ -229,7 +170,7 @@ def run_figure1_ibia():
     print(f"  Formants: {formants.shape}")
     print(f"  F2 range: {formants[:,1].min():.0f} - {formants[:,1].max():.0f} Hz")
 
-    z_v, z_c, n_disp = reconstruct_polar(result, T)  # display-rate arrays
+    z_v, z_c, n_disp = display_branches(result, blocks)  # display-rate arrays
     P = result.Pval
     t_ms = np.arange(P.shape[0]) * T_STEP_MS
     t_ms_z = np.arange(n_disp) / (SR_DISPLAY / 1000.0)
@@ -325,18 +266,21 @@ def run_figure4_bigbi():
 
     # Left panel: big.bi with δo=δe=1 (Vo=Ve=V)
     print(f"\n  [Left] big bi with delta=1.0 (Vo=Ve=V)")
-    result_bigbi = panphon_pipeline("big bi", T=T, delta_o=1.0, delta_e=1.0, verbose=True)
+    result_bigbi, blocks_bigbi = run_pipeline_recorded(
+        "big bi", T=T, delta_o=1.0, delta_e=1.0, verbose=True)
     sig_bigbi, formants_bigbi = synth_and_get_formants(
         result_bigbi, T, FIG4_DIR / "bigbi_delta1.wav")
-    z_v_bigbi, z_c_bigbi, _ = reconstruct_polar(result_bigbi, T)
+    z_v_bigbi, z_c_bigbi, _ = display_branches(result_bigbi, blocks_bigbi)
     print(f"    Signal: {sig_bigbi.shape[0]} samples ({sig_bigbi.shape[0]/FS_AUDIO*1000:.0f} ms)")
 
     # Right panel: bi.gbi (fused /gb/ cluster)
     print(f"\n  [Right] bi.gbi (fused /gb/ cluster)")
-    result_bigbi_fused = panphon_pipeline("bi.gbi", T=T, delta_o=1.0, delta_e=1.0, verbose=True)
+    result_bigbi_fused, blocks_fused = run_pipeline_recorded(
+        "bi.gbi", T=T, delta_o=1.0, delta_e=1.0, verbose=True)
     sig_fused, formants_fused = synth_and_get_formants(
         result_bigbi_fused, T, FIG4_DIR / "bigbi_fused.wav")
-    z_v_fused, z_c_fused, _ = reconstruct_polar(result_bigbi_fused, T)
+    z_v_fused, z_c_fused, _ = display_branches(result_bigbi_fused,
+                                               blocks_fused)
     print(f"    Signal: {sig_fused.shape[0]} samples ({sig_fused.shape[0]/FS_AUDIO*1000:.0f} ms)")
 
     # Combined figure: 4 rows x 2 columns (big.bi left, bi.gbi right)

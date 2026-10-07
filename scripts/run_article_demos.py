@@ -55,8 +55,9 @@ plt.rcParams["axes.unicode_minus"] = False
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
+sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
-from polar_primitives import polar_arc, stationary_point  # noqa: E402
+import polar_sync  # noqa: E402
 from synthSYL import panphon_pipeline  # noqa: E402
 from synthSYL.phonology import VOWELS_SYNTSYL, CONSONANTS_SYNTSYL  # noqa: E402
 import vlam  # noqa: E402
@@ -118,104 +119,31 @@ def get_phoneme_inventory():
     return vowels, consonants
 
 
-def reconstruct_polar_branches(result, pause_ms: float = 0.0):
-    """Reconstruct z_v and z_c from the pipeline result."""
-    anchors = result.anchors
-    nodes = result.nodes
-    n_steps = result.Pval.shape[0]
-    z_v_list, z_c_list = [], []
-    prev_pt = None
-    T_voy_ms = T_BASE * T_STEP_MS
-    T_voy_arc_ms = 2 * T_voy_ms
-    T_cons_ms = T_BASE * T_STEP_MS
-    T_pause_ms = max(pause_ms, T_STEP_MS)
+def run_pipeline_recorded(input_text, T=T_BASE, **kwargs):
+    """Run panphon_pipeline under polar_sync instrumentation.
 
-    for idx in range(len(anchors) - 1):
-        A, B = anchors[idx], anchors[idx + 1]
-        a_is_term = A.kind in ("pause", "synth")
-        b_is_term = B.kind in ("pause", "synth")
-        a_is_vowel = A.kind == "V"
-        b_is_vowel = B.kind == "V"
+    The engine's ACTUAL block sequence is recorded so that the display
+    branches (and any label timeline) are rebuilt from the same blocks
+    the engine walked — see scripts/polar_sync.py and
+    docs/DISPLAY_VS_ENGINE.md. The engine itself is untouched
+    (Pval/formants/sig identical to a direct panphon_pipeline call).
+    """
+    blocks: list = []
+    result = polar_sync.record_pipeline(
+        panphon_pipeline, blocks, text=input_text, T=T, **kwargs)
+    return result, blocks
 
-        if A.hold and a_is_vowel and not A.is_vowel_onset and not A.is_word_end:
-            z, _ = stationary_point(A.pt[0], A.pt[1],
-                                    duration_ms=T_voy_ms, sr=SR_DISPLAY)
-            z_v_list.append(z)
-            z_c_list.append(np.full_like(z, np.nan + 0j))
-            prev_pt = A.pt
 
-        search_start = A.i + 1 if not A.is_vowel_onset else A.i
-        search_end = B.i
-        consonants = [nodes[k] for k in range(search_start, search_end)
-                      if 0 <= k < len(nodes) and nodes[k].kind == "C"]
-        m = len(consonants)
-
-        if a_is_vowel and b_is_vowel:
-            if m > 0:
-                dur_ms = (m + 1) * T_cons_ms
-                z_v, _ = polar_arc(A.pt[0], A.pt[1], B.pt[0], B.pt[1],
-                                   duration_ms=dur_ms, sr=SR_DISPLAY,
-                                   K=K_DISPLAY, nu=1, orientation="inverse")
-                z_v_list.append(z_v)
-                points = [A.pt] + [[c.rho, c.theta] for c in consonants] + [B.pt]
-                z_c_block = []
-                for j in range(len(points) - 1):
-                    p1, p2 = points[j], points[j + 1]
-                    z_c, _ = polar_arc(p1[0], p1[1], p2[0], p2[1],
-                                       duration_ms=T_cons_ms, sr=SR_DISPLAY,
-                                       K=K_C_DISPLAY, nu=-1, orientation="inverse")
-                    z_c_block.append(z_c)
-                z_c_concat = np.concatenate(z_c_block)
-                if len(z_c_concat) < len(z_v):
-                    z_c_concat = np.concatenate([z_c_concat,
-                        np.full(len(z_v) - len(z_c_concat), np.nan + 0j)])
-                elif len(z_c_concat) > len(z_v):
-                    z_c_concat = z_c_concat[:len(z_v)]
-                z_c_list.append(z_c_concat)
-            else:
-                z_v, _ = polar_arc(A.pt[0], A.pt[1], B.pt[0], B.pt[1],
-                                   duration_ms=T_voy_arc_ms, sr=SR_DISPLAY,
-                                   K=K_DISPLAY, nu=1, orientation="inverse")
-                z_v_list.append(z_v)
-                z_c_list.append(np.full_like(z_v, np.nan + 0j))
-            prev_pt = B.pt
-        elif a_is_vowel and b_is_term:
-            z, _ = stationary_point(A.pt[0], A.pt[1],
-                                    duration_ms=T_cons_ms, sr=SR_DISPLAY)
-            z_v_list.append(z)
-            z_c_list.append(np.full_like(z, np.nan + 0j))
-            prev_pt = A.pt
-        elif a_is_term and b_is_vowel:
-            if prev_pt is not None:
-                z_v, _ = polar_arc(prev_pt[0], prev_pt[1],
-                                   B.pt[0], B.pt[1],
-                                   duration_ms=T_pause_ms, sr=SR_DISPLAY,
-                                   K=K_DISPLAY, nu=1, orientation="inverse")
-                z_v_list.append(z_v)
-                z_c_list.append(np.full_like(z_v, np.nan + 0j))
-            prev_pt = B.pt
-
-    if z_v_list:
-        z_v = np.concatenate([np.asarray(z, dtype=complex) for z in z_v_list])
-        z_c = np.concatenate([np.asarray(z, dtype=complex) for z in z_c_list])
-    else:
-        z_v = np.zeros(n_steps, dtype=complex)
-        z_c = np.full(n_steps, np.nan + 0j)
-    # Align to the DISPLAY-rate length (SR_DISPLAY = 10 x SR_GESTURE),
-    # not the engine step count: the branches are sampled at SR_DISPLAY.
-    # (Aligning on n_steps kept only the first 10% of the trajectory and
-    # wiped z_c from panel (a) — see docs/POLAR_K_AUDIT.md.)
-    disp_len = int(round(n_steps * SR_DISPLAY / SR_GESTURE))
-    if len(z_v) < disp_len:
-        last = z_v[-1] if len(z_v) else 0
-        z_v = np.concatenate([z_v, np.full(disp_len - len(z_v), last, dtype=complex)])
-    else:
-        z_v = z_v[:disp_len]
-    if len(z_c) < disp_len:
-        z_c = np.concatenate([z_c, np.full(disp_len - len(z_c), np.nan + 0j, dtype=complex)])
-    else:
-        z_c = z_c[:disp_len]
-    return z_v, z_c, disp_len
+def display_branches(result, blocks):
+    """z_v / z_c via polar_sync.build_branches (original
+    Syllable_Synthesis display anchoring: pd on the departure side,
+    phase on pa, theta in [0, pi] / [-pi, 0] — teardrop z_c, K=30/10,
+    display nu_v=-1 / nu_c=+1; z_v drawn with the same arcplot form)."""
+    z_v, z_c, n_disp = polar_sync.build_branches(
+        blocks, result.Pval.shape[0], t_step_ms=T_STEP_MS,
+        sr_display=SR_DISPLAY, k_v=K_DISPLAY, k_c=K_C_DISPLAY,
+        nu_v=-1, nu_c=1)
+    return z_v, z_c, n_disp
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -236,7 +164,8 @@ def run_demo1_ibia():
     print(f"  Input: {input_text}")
     print(f"  T={T_BASE}, K=10, Kvoy=30, Pexp=1")
 
-    result = panphon_pipeline(input_text, T=T_BASE, verbose=True)
+    result, blocks = run_pipeline_recorded(input_text, T=T_BASE,
+                                           verbose=True)
     if result is None:
         print("  Pipeline failed")
         return
@@ -269,9 +198,9 @@ def run_demo1_ibia():
     print(f"  WAV: {sig.shape} samples ({sig.shape[0]/FS_AUDIO*1000:.0f} ms)")
     print(f"  Formants: {formants.shape}")
 
-    # Reconstruct polar branches (returned arrays are sampled at
-    # SR_DISPLAY = 10 x the engine step rate)
-    z_v, z_c, n_disp = reconstruct_polar_branches(result)
+    # Reconstruct polar branches from the RECORDED engine blocks
+    # (original arcplot anchoring; arrays sampled at SR_DISPLAY)
+    z_v, z_c, n_disp = display_branches(result, blocks)
     n_steps = result.Pval.shape[0]
 
     # ── Figure: 4 panels (a, b, c, d) ──
@@ -493,7 +422,8 @@ def run_demo5_clusters():
         info = CLUSTER_INFO[cluster]
         print(f"\n  [/{cluster}/] input={input_text}  Sc={info['Sc']}  ({info['note']})")
 
-        result = panphon_pipeline(input_text, T=T_BASE, verbose=False)
+        result, blocks = run_pipeline_recorded(input_text, T=T_BASE,
+                                               verbose=False)
         if result is None:
             print(f"    Failed")
             continue
@@ -515,8 +445,8 @@ def run_demo5_clusters():
         wav_path = DEMO5_DIR / f"cluster_{cluster}.wav"
         wav_write(str(wav_path), FS_AUDIO, sig_int16)
 
-        # Reconstruct polar
-        z_v, z_c, n_steps = reconstruct_polar_branches(result)
+        # Reconstruct polar from the recorded blocks (teardrop z_c)
+        z_v, z_c, n_steps = display_branches(result, blocks)
 
         all_results.append((cluster, input_text, result, formants, z_v, z_c, info))
 
