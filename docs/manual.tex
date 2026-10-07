@@ -491,10 +491,18 @@ sudo apt install ffmpeg  # Linux
 
 This is the main demonstration, showing the verbal transformation
 with $T=16$ (didactic mode), starting at $\delta = 0.50$ for a
-salient schwa @.
+salient boundary schwa @. \textbf{Dot form} (author ruling
+2026-10-07): big.bi is synthesized as the dotted word
+\texttt{big.bi} --- the '.' between /g/ and /b/ is a C.C syllable
+boundary with \emph{no pause} (the reference Timit-to-Maeda
+semantics: the Ve of ``big'' is coarticulated with the /i/ of
+``bi'', the boundary anchor weighted by COEFCEN). There is therefore
+\emph{no} $T_p$/pause dimension in this sweep: $\delta$ alone drives
+the transformation (boundary anchor $= \delta \cdot \rho_i$; at
+$\delta = 1$ the anchor is the full /i/, fusion-ready).
 
 \begin{lstlisting}[language=bash]
-# Run the sweep (14 segments: 11 "big bi" + 3 "bi.gbi")
+# Run the sweep (14 segments: 11 "big.bi" + 3 "bi.gbi")
 python scripts/run_bigbi_polar_sweep.py
 
 # Generate the dual-panel video (sagittal | polar)
@@ -504,18 +512,24 @@ python scripts/make_bigbi_dual_video.py
 python scripts/embed_video_in_html.py en
 \end{lstlisting}
 
-The output is in \texttt{download/bigbi\_polar\_sweep\_en\_v2/}:
+The output is in \texttt{output/bigbi\_polar\_sweep/}:
 \begin{itemize}
-\item \texttt{dual/dual\_progressive.mp4} --- dual-panel video (1.5 MB)
-\item \texttt{polar/polar\_progressive.mp4} --- polar-only video (3.5 MB)
-\item \texttt{index\_embedded.html} --- self-contained HTML (6.5 MB)
+\item \texttt{dual/dual\_progressive.mp4} --- dual-panel video
+  ($\approx$ 24.2~s, 1.4~MB)
+\item \texttt{polar/polar\_progressive.mp4} --- polar-only video (3.3~MB)
+\item \texttt{index\_embedded.html} --- self-contained HTML
+  (re-embedded in \texttt{simulations/})
 \end{itemize}
 
 \subsection{Demonstration 2: U-shaped $T_p$ variation}
 
 The U-shaped variation lets the listener clearly perceive:
 \texttt{ib ib} at the start $\to$ \texttt{bi bi} at the bottom
-(fusion) $\to$ \texttt{ib ib} again at the end.
+(fusion) $\to$ \texttt{ib ib} again at the end. This $T_p$ sweep is
+the /ibi/ supplement demonstration (\S3 classical transformation),
+where the inter-word pause IS the object of study; it is distinct
+from the big.bi sweep of Demonstration~1, which — in the dot form —
+carries no $T_p$ dimension.
 
 \begin{lstlisting}[language=bash]
 python scripts/run_ibbi_ushape_sweep.py
@@ -642,43 +656,47 @@ period $T$. The graph complexity is corollary reduced with a decay
 of the number of nodes with the loss of $V$.''
 \end{quote}
 
-With $T=16$, our simulation shows:
+With $T=16$, in the dot form (no pause --- the block layout does not
+depend on $\delta$, only the anchor values do), our simulation shows:
 
 \begin{center}
 \begin{tabular}{lcccc}
 \toprule
 \textbf{Configuration} & $\delta$ & Steps & Duration (ms) & Reduction \\
 \midrule
-big bi (start) & 0.50 & 224 & 2240 & --- \\
-big bi (pre-fusion) & 0.995 & 179 & 1790 & $-450$ ms \\
-bi.gbi (fused) & 1.00 & 130 & 1300 & $-490$ ms from $\delta=0.995$ \\
+big.bi (dot, start) & 0.50 & 176 & 1760 & --- \\
+big.bi (dot, pre-fusion) & 0.995 & 176 & 1760 & --- \\
+bi.gbi (fused) & 1.00 & 160 & 1600 & $-160$ ms ($-1T$) \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-The reduction of $490$ ms $\approx 3.06T$ matches the article's
-prediction:
-\begin{itemize}
-\item $1T$ from consonant clustering (2 gestures $\to$ 1 cluster)
-\item $1T$ from $V_e$ plateau absorption (between /g/ and /b/)
-\item $1T$ from $V_o$ plateau absorption (before /b/ in ``bi'')
-\end{itemize}
-Total predicted: $3T = 480$~ms; observed: $490$~ms (within 1 step
-= 10~ms).
+The observable fusion gain is $1T = 160$~ms, from consonant
+clustering: the fused /gb/ cluster chains the /g/$\to$/b/ sub-arcs
+directly through the shared vowel anchor, and the separate syllable-2
+onset gesture disappears. (The earlier $\approx 3T$ reading compared
+against the space form ``big bi'' included the inter-word pause
+machinery --- decay + pause arc $\approx 2T$ --- which, as established,
+is not part of big.bi: the '.' is a C.C syllable boundary without
+pause, and the only latencies are the stop closures.)
 
 \subsection{Perceptual salience of the schwa @}
 
-With $T=16$ and $\delta = 0.50$, the schwa @ in \texttt{big@bi} is
-\textbf{salient} (clearly perceivable) because:
+With $T=16$ and $\delta = 0.50$, the boundary schwa @ in
+\texttt{big.bi} is \textbf{salient} (clearly perceivable) because:
 \begin{enumerate}
-\item $V_e$ $\rho = 0.45$ (most centralized, far from full vowel /i/)
-\item $T_p = 160$~ms (long inter-syllable pause)
-\item $V_e$ plateau = 160~ms at full amplitude (the Ve plateau fix)
+\item the C.C boundary anchor sits at $\rho = 0.45$ (most
+  centralized, far from the full vowel /i/ at $\rho = 0.9$);
+\item the $z_v$ background dips to that anchor between the /g/ and
+  /b/ clusters (audible schwa-like vocoid);
+\item there is no pause: the schwa is carried by the planning
+  trajectory through the consonant--consonant chain, exactly as the
+  dot semantics prescribe.
 \end{enumerate}
 
-As $\delta$ increases toward 1.0, $V_e$ approaches $V = /i/$, the
-pause shrinks, and the perception shifts from \texttt{big.bi} to
-\texttt{bi.gbi}.
+As $\delta$ increases toward 1.0, the boundary anchor approaches
+$V = /i/$ (COEFCEN $= 1$) and the perception shifts from
+\texttt{big.bi} to \texttt{bi.gbi}.
 
 % ════════════════════════════════════════════════════════════════
 % Section 8: Code Structure
@@ -1195,13 +1213,15 @@ or external file dependencies.
 
 \subsection{big.bi $\to$ bi.gbi (T=16, starts at COEFCEN=0.5)}
 
-\texttt{simulations/bigbi\_bi\_gbi\_embedded.html} (6.5 MB)
+\texttt{simulations/bigbi\_bi\_gbi\_embedded.html} ($\approx$ 6.3 MB)
 
 This simulation demonstrates the verbal transformation from big.bi
-to bi.gbi (\S4 of the article). It starts at $\delta = 0.50$
-(COEFCEN = 0.5, salient schwa @) for clear perception of big@bi,
-then increases $\delta$ to 1.00 (fusion). The last bi.gbi segment is
-repeated 3 times for perceptibility.
+to bi.gbi (\S4 of the article), in the \textbf{dot form} (no pause,
+no $T_p$ dimension). It starts at $\delta = 0.50$ (COEFCEN = 0.5,
+salient boundary schwa @) then increases $\delta$ to 1.00 (the C.C
+boundary anchor reaches the full /i/, fusion). The last bi.gbi
+segment is repeated 3 times for perceptibility. Duration
+$\approx$ 24.2~s.
 
 Features: dual-panel video (sagittal Maeda | polar plot with phoneme),
 14 segments, WebVTT captions, indexed transcript, keyboard shortcuts.

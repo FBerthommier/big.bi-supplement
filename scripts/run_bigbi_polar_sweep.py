@@ -2,35 +2,28 @@
 # SPDX-License-Identifier: MIT
 # -*- coding: utf-8 -*-
 """
-run_bigbi_polar_sweep_en.py — big.bi → bi.gbi transition with polar
+run_bigbi_polar_sweep.py — big.bi → bi.gbi transition with polar
 coordinates, following arXiv:2307.02299 §4 (Berthommier 2023).
 
-T=16 (didactic mode, ~3.2x longer than T=5).
-The last bi.gbi segment is repeated 3 times for perceptibility.
-All output in US English.
+T=16 (didactic mode). The last bi.gbi segment is repeated 3 times for
+perceptibility. All output in US English.
 
-Steps from the article §4:
-  1. Concatenate /big/ and /bi/ with δo = δe = 0.7 → audible schwa
-     between /g/ and /b/ → "big.bi"
-  2. δo = δe → 1 → Vo = Ve = V (fusion of two 2×2T segments into one 3T)
-  3. Final: bi.gbi with cluster /gb/ (Sc={1,2,3,6}), repeated 3 times
-
-Sweep: 14 segments
-  - 11 segments of "big bi" at δ ∈ {0.70, 0.75, 0.80, 0.85, 0.90, 0.92,
-    0.94, 0.96, 0.98, 0.99, 0.995}
-  - 3 segments of "bi.gbi" at δ = 1.00 (repeated for perceptibility)
-
-Output: <repo>/output/bigbi_polar_sweep/
-
-T=16, starts at delta=0.50 (COEFCEN=0.5, salient schwa @) for clear
-perception of big@bi, then increases to delta=1.00 (fusion).
-The last bi.gbi is repeated 3 times for perceptibility.
-All output in US English.
+DOT FORM (author ruling 2026-10-07): big.bi is synthesized as the
+dotted word "big.bi" — the '.' between /g/ and /b/ is a C.C syllable
+boundary with NO pause (the reference Timit-to-Maeda semantics: the Ve
+of "big" is coarticulated with the /i/ of "bi", the boundary anchor
+weighted by COEFCEN). There is therefore NO Tp/pause dimension in this
+sweep: δ alone drives the transformation. At δ < 1 the boundary
+vocoid is a schwa-like @ (boundary anchor = δ·ρ_i); at δ = 1 it is the
+full /i/ (fusion-ready), and bi.gbi — whose V.C dot is ignored, syllables
+merged — realizes the fused /gb/ cluster (Sc={1,2,3,6}).
 
 Sweep: 14 segments
-  - 11 segments of "big bi" at delta in {0.50, 0.55, 0.60, 0.65, 0.70,
+  - 11 segments of "big.bi" at delta in {0.50, 0.55, 0.60, 0.65, 0.70,
     0.75, 0.80, 0.85, 0.90, 0.95, 0.995}
   - 3 segments of "bi.gbi" at delta = 1.00 (repeated for perceptibility)
+
+Output: <repo>/output/bigbi_polar_sweep/
 """
 
 from __future__ import annotations
@@ -107,13 +100,13 @@ TRAIL_MS = 500          # fading trail length (ms) — short enough that
 GUI_LEN_MM = 195
 VALRECT = 0.75
 
-# 11 segments of "big bi" (delta from 0.50 to 0.995) + 3 segments of "bi.gbi" (delta=1.0)
-# Starts at delta=0.50 (= COEFCEN=0.5) for salient schwa @ in big@bi
+# 11 segments of "big.bi" (delta from 0.50 to 0.995) + 3 segments of
+# "bi.gbi" (delta=1.0). DOT FORM: no pause, no Tp — delta alone drives
+# the transformation (boundary anchor = delta * rho_i).
 DELTA_VALUES = [0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 0.995,
                 1.00, 1.00, 1.00]
-INPUT_TEXTS = (["big bi"] * 11) + (["bi.gbi"] * 3)
-DELTA_MIN = 0.50  # start at COEFCEN=0.5 (salient schwa @)
-TP_MAX_MS = 160.0  # Tp = T = 16 steps = 160 ms at delta=0.5
+INPUT_TEXTS = (["big.bi"] * 11) + (["bi.gbi"] * 3)
+DELTA_MIN = 0.50  # start at COEFCEN=0.5 (salient boundary schwa @)
 
 MAEDA_LABELS = ["Jaw", "Body", "Dorsum", "Tip", "LipP", "LipH", "Hy"]
 MAEDA_COLORS = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728",
@@ -124,16 +117,16 @@ MAEDA_COLORS = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728",
 # Helpers (US English labels)
 # ─────────────────────────────────────────────────────────────────────
 def factor_for_delta(delta: float) -> float:
-    """Tp factor coupled to δ: Tp = TP_MAX * (1-δ)/(1-DELTA_MIN)."""
-    if delta >= 1.0:
-        return 0.0
-    return (TP_MAX_MS / (T_BASE * T_STEP_MS)) * (1.0 - delta) / (1.0 - DELTA_MIN)
+    """Deprecated: the dot form has NO pause. Kept returning 0.0 for
+    backward compatibility (make_bigbi_dual_video.py imports it)."""
+    return 0.0
 
 
 def tp_ms_for_delta(delta: float) -> float:
-    if delta >= 1.0:
-        return 0.0
-    return TP_MAX_MS * (1.0 - delta) / (1.0 - DELTA_MIN)
+    """Deprecated: no Tp dimension in the dot-form sweep (the joint Tp
+    sweep lost its meaning once big.bi lost its pause — author ruling
+    2026-10-07). Always 0.0."""
+    return 0.0
 
 
 def form_label(delta: float, is_fused: bool = False, repeat_idx: int = 0) -> str:
@@ -142,12 +135,12 @@ def form_label(delta: float, is_fused: bool = False, repeat_idx: int = 0) -> str
             return f"bi.gbi (repeat {repeat_idx+1}/3) — /gb/ cluster fused, Sc={{1,2,3,6}}"
         return "bi.gbi — /gb/ cluster fused, Sc={1,2,3,6}"
     if delta > 0.95:
-        return "big.bi -> bi.gbi (Vo approx Ve approx V)"
+        return "big.bi -> bi.gbi (boundary anchor = full V)"
     if delta > 0.85:
-        return "big.bi (residual schwa)"
+        return "big.bi (residual boundary schwa)"
     if delta >= 0.60:
-        return "big.bi (audible schwa)"
-    return "big.bi (salient schwa @)"  # delta <= 0.60: COEFCEN=0.5, most centralized
+        return "big.bi (audible boundary schwa)"
+    return "big.bi (salient boundary schwa @)"  # delta <= 0.60: COEFCEN=0.5
 
 
 def get_phoneme_inventory():
@@ -162,15 +155,17 @@ def get_phoneme_inventory():
 def run_pipeline(delta: float, input_text: str):
     """(result, factor, blocks) — blocks recorded via polar_sync so the
     display branches, the phoneme labels AND their polar positions come
-    from the engine's actual block sequence (synchronized by design)."""
-    factor = factor_for_delta(delta)
+    from the engine's actual block sequence (synchronized by design).
+
+    DOT FORM: no pause factors — "big.bi"/"bi.gbi" are single dotted
+    words. ``factor`` (returned 0.0) is kept for backward compatibility
+    with make_bigbi_dual_video.py."""
+    factor = 0.0
     blocks: list = []
     result = polar_sync.record_pipeline(
         panphon_pipeline, blocks,
         text=input_text,
         T=T_BASE,
-        short_pause_duration_factor=factor,
-        long_pause_duration_factor=max(factor, 1.0),
         delta_o=delta, delta_e=delta,
         verbose=False,
     )
@@ -321,7 +316,7 @@ def plot_static_polar(z_v, z_c, delta, is_fused, repeat_idx, out_path,
     if np.any(valid_v):
         ax.plot(z_v[0].real, z_v[0].imag, "o", color="#aa0000", markersize=10, zorder=5)
         ax.plot(z_v[-1].real, z_v[-1].imag, "s", color="#aa0000", markersize=10, zorder=5)
-    input_text = "bi.gbi" if is_fused else "big bi"
+    input_text = "bi.gbi" if is_fused else "big.bi"
     suffix = f" (repeat {repeat_idx+1}/3)" if (is_fused and repeat_idx > 0) else ""
     ax.set_title(
         f"Polar plot — {input_text}{suffix}    δ = {delta:.3f}\n"
@@ -329,9 +324,9 @@ def plot_static_polar(z_v, z_c, delta, is_fused, repeat_idx, out_path,
         fontsize=11, color="#003366", fontweight="bold")
     ax.legend(loc="upper right", fontsize=9, framealpha=0.9)
     fig.text(0.5, 0.01,
-             "Branches reconstructed via polar_arc "
-             "(z_v K=30, z_c K=10 — article §2.1) — "
-             "arXiv:2307.02299 §4",
+             "Branches rebuilt from the engine blocks via polar_sync "
+             "(original arcplot anchoring; z_v K=30, z_c K=10, "
+             "nu_v=-1/nu_c=+1) — arXiv:2307.02299 §4 (dot form)",
              ha="center", fontsize=8, color="#666666")
     fig.savefig(out_path, dpi=120)
     plt.close(fig)
@@ -360,7 +355,7 @@ def plot_comparison_polar(items, out_path):
             for s, e in zip(seg_starts, seg_ends):
                 ax.plot(z_c[s:e+1].real, z_c[s:e+1].imag, "-",
                         color="#1f77b4", linewidth=1.5, alpha=0.9)
-        input_text = "bi.gbi" if is_fused else "big bi"
+        input_text = "bi.gbi" if is_fused else "big.bi"
         suffix = f" r{repeat_idx+1}" if (is_fused and repeat_idx > 0) else ""
         ax.set_title(f"{input_text}{suffix}\nδ = {delta:.3f}",
                      fontsize=9, color="#003366", fontweight="bold")
@@ -390,7 +385,7 @@ def render_polar_segment(z_v, z_c, delta, is_fused, repeat_idx, out_mp4,
     video_writer = None
     if vowels is None or consonants is None:
         vowels, consonants = get_phoneme_inventory()
-    input_text = "bi.gbi" if is_fused else "big bi"
+    input_text = "bi.gbi" if is_fused else "big.bi"
     suffix = f" (repeat {repeat_idx+1}/3)" if (is_fused and repeat_idx > 0) else ""
     print(f"  Rendering {n_out} polar frames @ {FPS_OUT} fps "
           f"(δ={delta:.3f}, {input_text}{suffix})")

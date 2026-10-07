@@ -96,7 +96,7 @@ bigbi-demos/
 │   ├── embed_video_in_html.py        # Self-contained HTML with base64 video
 │   └── compare_article_polar.py      # Compare with article Figure 4
 ├── simulations/               # Self-contained HTML simulations (base64 video embedded)
-│   ├── bigbi_bi_gbi_embedded.html           # big.bi → bi.gbi (T=16, δ=0.50→1.00)
+│   ├── bigbi_bi_gbi_embedded.html           # big.bi → bi.gbi (T=16, dot form/no pause, δ=0.50→1.00)
 │   ├── ibbi_ushape_nonreversible_embedded.html # NON-REVERSIBLE ib ib → bi bi → bi bi
 │   ├── ibbi_ushape_embedded.html            # Reversible U-shape ib ib → bi bi → ib ib
 │   └── trough_effect.html                   # Trough effect explainer (audio + figures)

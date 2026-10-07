@@ -158,6 +158,34 @@ part of the Tp/fusion demonstration. NOTE: `specgram` panels plotting
 in seconds must not share an x-axis set in ms (content squeezed into
 invisibility) — fixed in `make_article_figures.py` figure 4.
 
+### δ-sweep also in the dot form; the joint Tp sweep removed (2026-10-07, author ruling)
+
+"For the demonstration to make sense, the big.bi δ-sweep must also use
+the dot form — and in that case the joint Tp sweep no longer makes
+sense." Applied to `run_bigbi_polar_sweep.py` (+ `make_bigbi_dual_video.py`,
+which re-derives the pipeline):
+
+* input `big bi` → `big.bi` (C.C syllable boundary, no pause, no
+  pause factors — the engine change above supplies the COEFCEN-weighted
+  boundary anchor);
+* the Tp coupling (`Tp = 160·(1−δ)/(1−0.5) ms`) is GONE:
+  `factor_for_delta`/`tp_ms_for_delta` now return 0.0 (kept for the
+  dual-video import compatibility), npz keys `factor`/`tp_ms` kept at
+  0 for schema stability;
+* δ now means ONLY the boundary-anchor weight (δ·ρ_i): at 0.5 a
+  salient boundary schwa @, at 1.0 the full /i/ (fusion-ready), then
+  bi.gbi ×3 (fused /gb/);
+* video captions updated ("boundary schwa", polar_sync/arcplot note
+  replacing the stale `polar_arc` mention);
+* new dual video: 24.21 s (was 25.98 s with the pause); HTML
+  re-embedded with the chapter list REBUILT from the measured segment
+  durations and all texts updated (dot form, no Tp).
+
+The standalone Tp sweeps (`run_ibbi_ushape_sweep.py`,
+`run_ibbi_ushape_nonreversible_en.py`) are UNCHANGED: they demonstrate
+the /ibi/ supplement transformation (§3), where the inter-word pause
+IS the object of study.
+
 ### ν convention — confirmed: no confusion in the engine, only in the display
 
 Verification against Eq. 2 of arXiv:2307.02299
