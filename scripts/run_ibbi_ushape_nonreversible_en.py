@@ -2,23 +2,26 @@
 # SPDX-License-Identifier: MIT
 # -*- coding: utf-8 -*-
 """
-run_ibbi_ushape_nonreversible_en.py — NON-REVERSIBLE CONTINUOUS Tp
-variation: ib ib → fusion (bi bi) → bi bi (held).
+run_ibbi_ushape_nonreversible_en.py — NON-REVERSIBLE U-shaped Tp
+variation: ib ib → fusion (bi bi) → Tp rises again, but the content
+STAYS bi bi.
 
 Key insight: the verbal transformation is NON-REVERSIBLE. Once the
 graph has reorganized from VC.VC (ib ib) to CV.CV (bi bi) at the fusion
 point (Tp=0, delta=1), restoring Tp does NOT bring back "ib ib".
 The /b/ stays in onset position.
 
-CONTINUOUS design (10 segments; author rulings 2026-10-07):
-  Seg 1-5:   "ib ib"  Tp decreasing 160, 120, 80, 40, 10 ms, delta
-             correlated (delta = 0.5 + 0.5*(1-Tp/160))
+U-SHAPED design, 10 segments (author rulings 2026-10-07: same U-shaped
+Tp as the reversible demonstration, but the content is
+non-reversible):
+  Seg 1-5:   "ib ib"  Tp 160, 120, 80, 40, 10 ms, delta correlated
+             (delta = 0.5 + 0.5*(1-Tp/160))
   Seg 6:     "bi bi"  Tp=0, delta=1.00         (FUSION — non-reversible!)
-  Seg 7-10:  "bi bi"  held at the fusion point (stays as bi bi!)
+  Seg 7-10:  "bi bi"  Tp increasing 40, 80, 120, 160 ms — stays bi bi!
 
 The descent uses "ib ib" (VC.VC, /b/ in coda).
-At the fusion point, input switches to "bi bi" (CV.CV, /b/ in onset)
-and STAYS there — the transformation is not undone.
+At the fusion point, input switches to "bi bi" (CV.CV, /b/ in onset).
+The ascent restores Tp but keeps "bi bi" — the /b/ stays in onset.
 
 Article parameters: T=16, K=10, Kvoy=30, Pexp=1, nu=-1, valrect=0.75.
 US English.
@@ -99,12 +102,13 @@ GUI_LEN_MM = 195
 VALRECT = 0.75  # VLAM soft-rectification (per user request)
 TP_MAX_MS = 160.0
 
-# NON-REVERSIBLE ramp, 10 segments (author rulings 2026-10-07:
-# continuous correlated Tp/delta descent to Tp=0/delta=1 — then
-# "ramener à 10 segments"). Tp decreases (delta correlated:
-# delta = 0.5 + 0.5*(1 - Tp/160)) to the fusion point and STAYS there:
-# the transformation is not undone.
-TP_MS_VALUES = [160, 120, 80, 40, 10, 0, 0, 0, 0, 0]
+# NON-REVERSIBLE U-shaped Tp, 10 segments (author rulings 2026-10-07:
+# U-shaped Tp like the reversible demonstration, but the CONTENT is
+# non-reversible): Tp decreases to 0 (delta correlated:
+# delta = 0.5 + 0.5*(1 - Tp/160)) — the fusion point — then increases
+# back to 160 ms while the input STAYS "bi bi": the /b/ remains in
+# onset position even with a fully restored pause.
+TP_MS_VALUES = [160, 120, 80, 40, 10, 0, 40, 80, 120, 160]
 INPUT_TEXTS = ["ib ib"] * 5 + ["bi bi"] * 5
 
 MAEDA_LABELS = ["Jaw", "Body", "Dorsum", "Tip", "LipP", "LipH", "Hy"]
@@ -125,8 +129,13 @@ def delta_for_tp_ms(tp_ms: float) -> float:
 
 def form_label(tp_ms: float, input_text: str, idx: int) -> str:
     is_bi = (input_text == "bi bi")
+    if idx == 5:
+        return "bi bi (FUSION — non-reversible!)"
     if is_bi:
-        return "bi bi (FUSION — non-reversible: /b/ stays in onset)"
+        # ascent with Tp restored: still "bi bi" — non-reversible
+        if tp_ms >= 160:
+            return "bi bi (Tp restored, /b/ stays in onset — NON-REVERSIBLE)"
+        return "bi bi (Tp increasing, /b/ stays in onset — NON-REVERSIBLE)"
     # continuous ib ib descent
     if tp_ms >= 160:
         return "ib ib (clear baseline — schwa @ in coda)"
@@ -138,12 +147,13 @@ def form_label(tp_ms: float, input_text: str, idx: int) -> str:
 
 
 def u_position(idx: int, total: int) -> str:
-    n_desc = total - 5  # the last 5 segments are the fusion hold
-    if idx < n_desc:
-        return f"continuous descent {idx + 1}/{n_desc} (ib ib)"
-    if idx == n_desc:
+    half = total // 2  # 5
+    if idx < half:
+        return f"descent {idx + 1}/{half} (ib ib)"
+    if idx == half:
         return "FUSION POINT (ib ib -> bi bi)"
-    return f"fusion hold {idx - n_desc}/4 (bi bi — NON-REVERSIBLE)"
+    return (f"ascent {idx - half}/{half} (bi bi — NON-REVERSIBLE: "
+            f"Tp rises, content stays bi bi)")
 
 
 def get_phoneme_inventory():

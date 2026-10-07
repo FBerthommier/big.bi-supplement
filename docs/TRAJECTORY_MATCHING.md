@@ -232,6 +232,28 @@ unchanged → all reference gates re-verified at 0.000e+00). The
 supplement /ib/ renditions drop from 1280 to 1120 ms. The trough HTML
 contains no plateau text and /ibi/ has no coda @ — unaffected.
 
+### Non-reversible demo: U-shaped Tp + HTML denominators fixed (2026-10-07, author rulings)
+
+"Refaire la démonstration ib ib non réversible avec un Tp U-shaped comme
+la démonstration réversible" — `run_ibbi_ushape_nonreversible_en.py`
+goes back to the U: Tp = [160, 120, 80, 40, 10, **0**, 40, 80, 120, 160]
+(delta correlated), texts ["ib ib"]×5 + ["bi bi"]×5 — the Tp profile
+mirrors the reversible demo, but after the fusion point the input STAYS
+"bi bi" while Tp rises: the /b/ remains in onset (non-reversible
+content). Dual video 16.91 s.
+
+"L'affichage x/13 et x/11 sous HTML ne donne pas le bon nombre
+d'éléments au dénominateur (il y en a 10 seulement)" — the stale
+denominators lived in the EMBEDDED WebVTT captions ("Seg 1/13 …",
+"Seg 1/11 …" — authored with the original 13/11-segment pages and never
+regenerated) and in the metadata chips ("13 segments · U-shaped Tp",
+"11 segments · NON-REVERSIBLE U-shape", stale Duration chip, Method
+description). Both HTMLs re-embedded with: rebuilt 10-chapter lists,
+REGENERATED WebVTT (10 cues, x/10, current Tp/δ), and refreshed chips
+(10 segments, measured durations 18.64 s / 16.91 s, Method text,
+polar_sync mention). Control frame verified: "Seg 6/10 (FUSION POINT)
+Tp=0 ms δ=1.000 — bi bi (FUSION—non-reversible!)".
+
 ### ν convention — confirmed: no confusion in the engine, only in the display
 
 Verification against Eq. 2 of arXiv:2307.02299
