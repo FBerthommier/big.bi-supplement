@@ -242,8 +242,7 @@ def run_demo1_ibia():
         ax.plot(t_ms, P[:, i], color=MAEDA_COLORS[i], linewidth=lw,
                 alpha=alpha, label=MAEDA_LABELS[i])
     ax.set_ylabel("Maeda parameter")
-    ax.set_title("(b) Flow of articulatory parameters "
-                 "(trough effect: Body variation during /b/)",
+    ax.set_title("(b) Articulatory parameters",
                  fontsize=12, fontweight="bold")
     ax.legend(loc="upper right", ncol=7, fontsize=8)
     ax.grid(True, alpha=0.3)
@@ -260,8 +259,7 @@ def run_demo1_ibia():
     ax.plot(t_formants, formants[:, 2], color="#1f77b4", linewidth=1.5,
             label="F3")
     ax.set_ylabel("Frequency (Hz)")
-    ax.set_title("(c) Formant trajectory F1-F2-F3 "
-                 "(F2 shows S-shaped pattern during /b/)",
+    ax.set_title("(c) Formants F1-F2-F3",
                  fontsize=12, fontweight="bold")
     ax.legend(loc="upper right", fontsize=9)
     ax.grid(True, alpha=0.3)
@@ -274,16 +272,13 @@ def run_demo1_ibia():
     ax.specgram(sig_f, NFFT=256, Fs=FS_AUDIO, noverlap=192,
                 cmap="magma", scale="dB")
     ax.set_ylabel("Frequency (Hz)")
-    ax.set_title("(d) Output spectrogram",
+    ax.set_title("(d) Spectrogram + wave",
                  fontsize=12, fontweight="bold")
     ax.set_xlabel("Time (s)")
     ax.set_ylim(0, 4000)
 
-    fig.suptitle(
-        f"Figure 1: Four-step synthesis of /ibia/ (T={T_BASE}, "
-        f"K=10, Kvoy=30, Pexp=1)\n"
-        f"arXiv:2307.02299 (Berthommier 2023)",
-        fontsize=13, fontweight="bold", y=1.01)
+    fig.suptitle(f"Figure 1 — four-step synthesis of /ibia/ (T={T_BASE})",
+                 fontsize=13, fontweight="bold")
 
     fig_path = DEMO1_DIR / "ibia_4panel.png"
     fig.savefig(fig_path, dpi=120, bbox_inches="tight")

@@ -238,11 +238,8 @@ def run_figure1_ibia():
     ax.set_xlabel("Time (s)")
     ax.set_ylim(0, 4000)
 
-    fig.suptitle(
-        f"Figure 1 (original): Four-step synthesis of /ibia/ "
-        f"(T={T*T_STEP_MS}ms, K=10, Kvoy=30, Pexp=1)\n"
-        f"arXiv:2307.02299 (Berthommier 2023)",
-        fontsize=13, fontweight="bold", y=1.01)
+    fig.suptitle(f"Figure 1 (original) — /ibia/, T={T*T_STEP_MS} ms",
+                 fontsize=13, fontweight="bold")
     fig.savefig(FIG1_DIR / "ibia_4panel_original.png", dpi=120, bbox_inches="tight")
     plt.close(fig)
     print(f"  Figure saved: {FIG1_DIR}/ibia_4panel_original.png")
@@ -352,11 +349,8 @@ def run_figure4_bigbi():
         ax.set_ylabel("Frequency (Hz)")
         ax.set_ylim(0, 4000)
 
-    fig.suptitle(
-        f"Figure 4 (original): Synthesis of big.bi (δo=δe=1) and bi.gbi\n"
-        f"(T={T}, K=10, Kvoy=30, Pexp=1, valrect={VALRECT})\n"
-        f"arXiv:2307.02299 (Berthommier 2023)",
-        fontsize=13, fontweight="bold", y=1.01)
+    fig.suptitle("Figure 4 (original) — big.bi | bi.gbi",
+                 fontsize=13, fontweight="bold")
     fig.savefig(FIG4_DIR / "figure4_original.png", dpi=120, bbox_inches="tight")
     plt.close(fig)
     print(f"\n  Figure saved: {FIG4_DIR}/figure4_original.png")
@@ -430,8 +424,9 @@ def run_supplement_ib_bi():
     all_data = []
     for input_text, delta, label in cases:
         print(f"\n  [{label}] input={input_text}")
-        result = panphon_pipeline(input_text, T=T, delta_o=delta, delta_e=delta,
-                                  verbose=False)
+        result, blocks = run_pipeline_recorded(input_text, T=T,
+                                               delta_o=delta, delta_e=delta,
+                                               verbose=False)
         if result is None:
             print(f"    FAILED")
             continue
@@ -439,6 +434,36 @@ def run_supplement_ib_bi():
         sig, formants = synth_and_get_formants(result, T, wav_path)
         print(f"    Signal: {sig.shape[0]} samples ({sig.shape[0]/FS_AUDIO*1000:.0f} ms)")
         print(f"    Formants: {formants.shape}")
+
+        if input_text == "ib":
+            # ── Ve-plateau revocation gate (author ruling 2026-10-07) ──
+            # The @ of /ib/ is NOT held: the /b/ cluster must be followed
+            # DIRECTLY by the decay at the boundary anchor — the reduced
+            # Vo/Ve anchor (delta*rho_i, theta_i) for delta<1, the full
+            # vowel for delta=1 — with no stationary plateau in between,
+            # and the utterance lasts 112 steps (1120 ms), not 128.
+            kinds = [b["kind"] for b in blocks]
+            ci = kinds.index("cluster")
+            assert result.Pval.shape[0] == 112, (
+                f"/ib/ (delta={delta}) duration changed: "
+                f"{result.Pval.shape[0]} steps "
+                f"({result.Pval.shape[0] * T_STEP_MS} ms), expected 112")
+            assert kinds[ci + 1] == "decay", (
+                f"held @ revived in /ib/ (delta={delta}): block after "
+                f"the /b/ cluster is {kinds[ci + 1]!r}, expected 'decay'")
+            anchor = blocks[ci]["arr"]
+            decay_pt = blocks[ci + 1]["pt"]
+            assert np.allclose(decay_pt, anchor, atol=1e-9), (
+                f"decay target {decay_pt} != cluster arrival anchor "
+                f"{anchor} in /ib/ (delta={delta})")
+            vi = VOWELS_SYNTSYL["i"]
+            assert np.isclose(anchor[0], delta * vi["rho"], atol=1e-9), (
+                f"boundary anchor rho {anchor[0]:.3f} != delta*rho_i "
+                f"({delta * vi['rho']:.3f}) in /ib/ (delta={delta})")
+            print(f"    Gate OK: no held @ (cluster -> decay at "
+                  f"({anchor[0]:.2f}|{anchor[1]:.3f})), "
+                  f"{result.Pval.shape[0] * T_STEP_MS} ms")
+
         all_data.append((input_text, delta, label, result, sig, formants))
 
     # Figure: 3 columns (ib δ=0.5, ib δ=1.0, bi δ=1.0) x 3 rows (params, formants, spectrogram)
@@ -488,11 +513,8 @@ def run_supplement_ib_bi():
         ax.set_ylabel("Hz")
         ax.set_ylim(0, 4000)
 
-    fig.suptitle(
-        f"Supplement (original): /ib/ -> /bi/ classical transformation\n"
-        f"(T={T}, K=10, Kvoy=30, Pexp=1, valrect={VALRECT})\n"
-        f"arXiv:2307.02299 (Berthommier 2023)",
-        fontsize=13, fontweight="bold", y=1.01)
+    fig.suptitle("Supplement (original) — /ib/ → /bi/",
+                 fontsize=13, fontweight="bold")
     fig.savefig(SUPP_DIR / "supplement_ib_bi_original.png", dpi=120, bbox_inches="tight")
     plt.close(fig)
     print(f"\n  Figure saved: {SUPP_DIR}/supplement_ib_bi_original.png")
