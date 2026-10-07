@@ -61,8 +61,11 @@ the first comparison figure. Naming check: `types.py` maps
 `is_voydeb → is_vowel_onset` (VOYDEB = onset coefficient) and
 `constants.py` defines COEFCEN as the end/centre-weight coefficient.
 
-Under these conditions (`docs/figures/fig_bigbi_article_conditions.png`,
-T = 16, z_v K = 30 / z_c K = 10):
+Under these conditions
+(`docs/figures/fig_bigbi_article_conditions_nu_inv.png`,
+T = 16, z_v K = 30 / z_c K = 10; the earlier +1/−1-ν rendering
+`fig_bigbi_article_conditions.png` was superseded by the
+ν-inversion ruling below and removed):
 
 | utterance | z_c gestures | apexes (θ, ρ) | red branch |
 |---|---|---|---|

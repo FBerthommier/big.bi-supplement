@@ -34,6 +34,10 @@ python scripts/run_article_demos.py
 # -> docs/figures/demo2/, docs/figures/demo4/
 python scripts/run_locus_trough_demos.py
 
+# Article-format figures (Figs 1/3/4 in the article's own layout)
+# -> docs/figures/article_format/ + refreshed planning panels
+python scripts/make_article_figures.py
+
 # Exact article reproductions (original_simulations/ references)
 python scripts/run_original_simulations.py
 
@@ -48,9 +52,15 @@ python scripts/run_ibbi_ushape_sweep.py
 ```
 
 Polar display conventions (arXiv:2307.02299 §2.1): vowel arcs z_v use
-K = 30 ("Kvoy"), consonant arcs z_c use K = 10 — see
-`polar_primitives.py` and `docs/POLAR_K_AUDIT.md`. These constants only
-affect display; the acoustic engine (K = 10, Kvoy = 30 in
+K = 30 ("Kvoy"), consonant arcs z_c use K = 10, and every sub-arc is
+anchored as in the original Syllable_Synthesis display (`arcplot`:
+departure-side point pd, phase on the arrival-side point pa, θ ∈
+[0, π] / [−π, 0] — teardrop z_c), with the display ν convention
+ν_v = −1 / ν_c = +1. The branches are rebuilt from the engine's
+recorded block sequence by `scripts/polar_sync.py`; see
+`docs/DISPLAY_VS_ENGINE.md` (engine/display anchoring audit) and
+`docs/POLAR_K_AUDIT.md`. These are display conventions only; the
+acoustic engine (K = 10, Kvoy = 30, ν = −1 in
 `synthSYL/constants.py`) is untouched.
 
 ## Repository Structure
@@ -76,6 +86,8 @@ bigbi-demos/
 │   ├── run_article_demos.py          # Demos 1/3/5 (ibia, S-shaped F2, clusters)
 │   ├── run_locus_trough_demos.py     # Demos 2/4 (locus equations, trough effect)
 │   ├── run_original_simulations.py   # Exact article reproductions + reference check
+│   ├── make_article_figures.py       # Article-format Figures 1/3/4 + planning panels
+│   ├── polar_sync.py                 # Engine-block-synchronized polar display (arcplot)
 │   ├── run_bigbi_polar_sweep.py      # big.bi → bi.gbi polar sweep
 │   ├── run_ibbi_ushape_sweep.py      # U-shaped Tp variation (reversible)
 │   ├── run_ibbi_ushape_nonreversible_en.py  # Non-reversible variant
@@ -94,9 +106,12 @@ bigbi-demos/
 │   └── supplement_ib_bi/      # /ib/ → /bi/ classical transformation (supplement)
 ├── docs/                      # Didactic documentation
 │   ├── manual.tex             # LaTeX source (US English)
-│   ├── manual.pdf             # Compiled PDF (25 pages)
+│   ├── manual.pdf             # Compiled PDF (26 pages)
+│   ├── DISPLAY_VS_ENGINE.md   # Engine/display arcplot anchoring audit
+│   ├── TRAJECTORY_MATCHING.md # Reference-panel matching + teardrop history
 │   ├── LOCUS_FIG3_DIAGNOSTIC.md  # Demo 2 measurement-frame bug analysis
 │   ├── POLAR_K_AUDIT.md       # K=10/K=30 display-curvature audit
+│   ├── figures/article_format/  # Figures 1/3/4 in the article's format
 │   └── figures/               # Simulation figures (Demos 1–5 + comparisons)
 └── examples/                  # Quick demos
     ├── demo_bigbi.py          # Minimal big.bi → bi.gbi demo
