@@ -101,3 +101,37 @@ Other 2026-10-07 gates re-verified at 1.10:
 See `docs/LOCUS_FIG3_DIAGNOSTIC.md` for the (unchanged) sensitivity
 analysis and `docs/manual.tex` §"Audio verification" for the listening
 context.
+
+## Final pre-push checkup (2026-10-07, subtask 7)
+
+Programmatic gates (all green):
+
+- **engine**: fresh `run_original_simulations.py` == shipped reference
+  at 0.000e+00 for every array (Pval included); "Gate OK: no held @"
+  printed for both /ib/ supplement deltas (112 steps = 1120 ms);
+- **locus slopes** re-measured from the shipped figure logs and matching
+  the manual table: 0.703 / 0.421 / 0.630 / 2.335 (r² 0.983 / 0.965 /
+  0.784 / 1.000);
+- **HTML pages**: titles carry "NON-REVERSIBLE U-shape" where
+  applicable, chapters x/10 (x/14 for big.bi), WebVTT cues x/10 (x/14),
+  duration chips equal to the measured video durations (24.21 / 18.64 /
+  16.91 s), posters embedded, trough_effect footer "valrect=1.10";
+- **manual.pdf**: 27 pages, zero unresolved references ("??").
+
+Visual pass (figures, 4 video frames, manual pages 1/21/23/27): no
+overlapping or clipped titles/legends, every panel drawn, article-format
+slopes readable in the regression labels, video frames show both panels
+(sagittal + polar with trail/ball/phoneme label).
+
+Known cosmetic (pre-existing, both rendering rounds, **not** a valrect
+region): the PIL title bar of the three videos falls back to
+`ImageFont.load_default()` under Windows (the scripts only probe the
+Linux path `/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf`), so
+em-dashes (and other non-Latin-1 glyphs) in the title bar render as
+tofu boxes. The matplotlib panels themselves are unaffected. Left as-is
+pending an author decision (fix = add a Windows font path + re-render
+the three videos).
+
+Leftover: `docs/manual_old_locked.pdf` (renamed-aside previous build,
+still locked by a viewer at checkup time) is untracked and should be
+deleted before the push.
