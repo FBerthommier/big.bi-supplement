@@ -73,7 +73,7 @@ bigbi-demos/
 ├── polar_primitives.py        # Standalone polar arc primitives (display branches)
 ├── requirements.txt           # Core dependencies (numpy/scipy/matplotlib)
 ├── requirements-vlam.txt      # Optional video-generation dependencies
-├── synthSYL/                  # Modified synthSYL package (with delta_o, delta_e, Ve plateau fix)
+├── synthSYL/                  # Modified synthSYL package (with delta_o, delta_e, COEFCEN syllable chaining)
 │   ├── constants.py            # COEFCEN, DEFAULT_K=10, DEFAULT_KVOY=30, DEFAULT_DELTA_O/E
 │   ├── gesture.py              # Vo/Ve anchor construction with delta_o, delta_e
 │   ├── trajectory.py           # Ve plateau fix (full-amplitude before decay)
@@ -127,10 +127,11 @@ This repository extends the original [timit-to-Maeda](https://github.com/FBertho
    - `Ve = (delta_e * rho_V, theta_V)` — end anchoring vowel
    - Added as optional kwargs to `panphon_pipeline()`
 
-2. **Ve plateau fix** (Berthommier 2023, §2.2: "Ve is a NODE"):
-   - Added a full-amplitude plateau (T_voy duration) before the decay block
-   - Makes the schwa-like vocoid (Ve) perceptually salient
-   - Without this fix, the @ → I transformation when delta → 1 is imperceptible
+2. **Syllable-onset anchor weighted by COEFCEN** (the reference
+   Timit-to-Maeda formula): the '.' C.C boundary anchor is the previous
+   vowel weighted by COEFCEN (not VOYDEB) — under COEFCEN = 1 the Ve of
+   the coda syllable IS the next syllable's vowel (coarticulated; no
+   held @, no pause).
 
 3. **Vo formula correction**:
    - Original: `Vo = [delta_o, theta_V]` (rho = delta_o directly)

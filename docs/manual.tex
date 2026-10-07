@@ -440,32 +440,32 @@ $\delta$ & $V_o = V_e$ $\rho$ & Perception & Article term \\
 \end{tabular}
 \end{table}
 
-\subsection{The Ve plateau fix}
+\subsection{The $V_e$ plateau --- revoked}
 
-A critical implementation detail: the article states that
-``$V_e$ is a NODE'' (\S2.2), meaning it should have its own plateau
-(like $V$), not just a decay transition. Without this plateau, the
-schwa-like vocoid is too brief to be perceived.
-
-In \texttt{trajectory.py}, the \texttt{\_handle\_b\_terminal()}
-function was modified to add a full-amplitude plateau before the
-decay block:
+An earlier revision of this repository added a full-amplitude
+$V_e$ plateau before the decay block (\texttt{trajectory.py},
+\texttt{\_handle\_b\_terminal()}), reasoning that ``$V_e$ is a NODE''
+(\S2.2) and should therefore be held like $V$. This addition has been
+\textbf{revoked} (author ruling 2026-10-07): a reduced word-end vowel
+is not pronounced as a tensed vowel --- one does not pronounce
+``ibe'' --- so there is NO held @. The engine now behaves like the
+reference \texttt{timit-to-Maeda}: the trajectory \emph{reaches} the
+$V_e$ anchor and decays immediately, with no extra hold. The
+reference \texttt{\_handle\_b\_terminal()} chains the decay directly:
 
 \begin{lstlisting}
 elif A.kind == "V":
     if B.kind == "pause":
         pt_A = _safe_pt(A)
-        # Ve plateau (full-amplitude) BEFORE the decay block
-        if A.is_word_end:
-            _append_plateau(blocks, pt_A, T_voy)
-            block_info.append(BlockInfo(n_steps=T_voy, kind="plateau"))
         _append_decay_block(blocks, block_info, pt_A, T_cons, pre_amp=1.0)
 \end{lstlisting}
 
-Without this fix, the decay envelope (Hanning$^3$) drops to 12\%
-amplitude in the first 25\% of the block, making the $V_e$ barely
-audible and the @ $\to$ /i/ transformation (when $\delta_e \to 1$)
-perceptually invisible.
+Our engine now matches this (the final vowel of a CV word is still
+held through the regular last-anchor hold; only the extra pre-decay
+$V_e$ plateau is gone). All reference reproductions remain
+bit-identical ($0.000e+00$): /ibia/ never had a $V_e$ plateau, and
+the words whose acoustics change (e.g.\ /ib/) are not part of the
+stored reference gates.
 
 % ════════════════════════════════════════════════════════════════
 % Section 5: Reproduction Guide
@@ -535,26 +535,26 @@ carries no $T_p$ dimension.
 python scripts/run_ibbi_ushape_sweep.py
 \end{lstlisting}
 
-The sweep is a \textbf{continuous U-shaped ramp} (33 segments):
-$T_p$ decreases in 10-ms increments --- one engine pause step at a
-time, the finest realizable resolution --- from 160~ms down to 0,
-with $\delta$ correlated at every point
-($\delta = 0.5 + 0.5\,(1 - T_p/160)$), then increases back to
-160~ms:
+The sweep is a \textbf{continuous U-shaped ramp} of \textbf{10
+segments}: $T_p$ decreases to 0 with $\delta$ correlated at every
+point ($\delta = 0.5 + 0.5\,(1 - T_p/160)$), then increases back to
+the 160-ms baseline; consecutive segments flow directly into one
+another (no restarts):
 \begin{center}
 \begin{tabular}{lccc}
 \toprule
  & Segments & $T_p$ (ms) & $\delta$ \\
 \midrule
-descent & 1--16 & 160, 150, \dots, 10 & 0.50 \dots 0.969 \\
-bottom (fusion, \texttt{bi bi}) & 17 & 0 & \textbf{1.000} \\
-ascent & 18--33 & 10, 20, \dots, 160 & 0.969 \dots 0.50 \\
+descent & 1--4 & 160, 120, 80, 40 & 0.50 \dots 0.875 \\
+bottom (fusion, \texttt{bi bi}) & 5 & 0 & \textbf{1.000} \\
+ascent & 6--9 & 40, 80, 120, 160 & 0.875 \dots 0.50 \\
+end baseline & 10 & 160 & 0.500 \\
 \bottomrule
 \end{tabular}
 \end{center}
-Each successive pair flows directly into the next, so the listener
-perceives one continuous acceleration into \texttt{bi bi} and back,
-not a staircase of discrete renditions. Duration $\approx$ 71~s.
+Duration $\approx$ 18.6~s. Note: the coda @ is \emph{not} held --- the
+trajectory reaches the word-end anchor and decays immediately (no
+``ibe'').
 
 \subsection{Demonstration 3: Comparison with the article}
 
@@ -1238,31 +1238,30 @@ Features: dual-panel video (sagittal Maeda | polar plot with phoneme),
 \subsection{ib ib $\to$ bi bi (NON-REVERSIBLE continuous descent)}
 
 \texttt{simulations/ibbi\_ushape\_nonreversible\_embedded.html}
-($\approx$ 7.4 MB)
+($\approx$ 4.3 MB)
 
 This simulation demonstrates the \textbf{non-reversible} verbal
 transformation as a \textbf{continuous descent}: ``ib ib'' (VC.VC,
-/b/ in coda) with $T_p$ decreasing in 10-ms steps from 160~ms to 0
+/b/ in coda) with $T_p$ decreasing 160, 120, 80, 40, 10~ms
 ($\delta$ correlated at every point). At the fusion point
 ($T_p=0$, $\delta=1$), the input switches to ``bi bi'' (CV.CV, /b/ in
 onset) and STAYS there --- the transformation is permanent and
-non-reversible. Duration $\approx$ 40~s (20 segments).
+non-reversible. Duration $\approx$ 15.8~s (10 segments).
 
-Features: dual-panel video, 20 segments, WebVTT captions, indexed
+Features: dual-panel video, 10 segments, WebVTT captions, indexed
 transcript, keyboard shortcuts.
 
 \subsection{ib ib $\to$ bi bi (U-shape, reversible)}
 
-\texttt{simulations/ibbi\_ushape\_embedded.html} ($\approx$ 12 MB)
+\texttt{simulations/ibbi\_ushape\_embedded.html} ($\approx$ 5.3 MB)
 
-The reversible version: a \textbf{continuous U-shaped ramp} (see
-Demonstration~2) --- ``ib ib'' throughout, with $T_p$ decreasing in
-10-ms steps from 160~ms to 0 and back up to 160~ms, $\delta$
-correlated. This version returns to ``ib ib'' at the end
-(reversible). Included for comparison with the non-reversible version
-above. Duration $\approx$ 71~s (33 segments).
+The reversible version: a \textbf{continuous U-shaped ramp} of 10
+segments (see Demonstration~2) --- ``ib ib'' throughout, with $T_p$
+160 $\to$ 0 $\to$ 160~ms, $\delta$ correlated. This version returns
+to ``ib ib'' at the end (reversible). Included for comparison with
+the non-reversible version above. Duration $\approx$ 18.6~s.
 
-Features: dual-panel video, 33 segments, WebVTT captions, indexed
+Features: dual-panel video, 10 segments, WebVTT captions, indexed
 transcript, keyboard shortcuts.
 
 % ════════════════════════════════════════════════════════════════
@@ -1278,8 +1277,10 @@ contributions are:
 \item The $\delta_o$ and $\delta_e$ parameters, enabling the
   gradual transition from schwa-like vocoid to full vowel.
 
-\item The $V_e$ plateau fix, making the schwa perceptually salient
-  (without this, the @ $\to$ /i/ transformation is imperceptible).
+\item The syllable-onset anchor weighted by COEFCEN (the reference
+  Timit-to-Maeda formula), and no held @: the trajectory reaches the
+  word-end anchor and decays immediately (one does not pronounce
+  ``ibe'').
 
 \item The $V_o$ formula correction ($V_o = \delta_o \cdot \rho_V$),
   ensuring $V_o = V$ at $\delta = 1$ for proper fusion.

@@ -489,16 +489,14 @@ def _handle_b_terminal(idx, anchors, A, B, nodes, consonants, m,
     elif A.kind == "V":
         if B.kind == "pause":
             pt_A = _safe_pt(A)
-            # Ve plateau (full-amplitude) BEFORE the decay block.
-            # Berthommier 2023 §2.2: Ve is a NODE (not just a transition),
-            # so it must have its own plateau (like V) for the schwa-like
-            # vocoid to be salient. Without this plateau, the decay envelope
-            # (Hanning^cdec, cdec=3) drops to ~12% in the first quarter of
-            # the block, making the Ve barely audible and the @ → I
-            # transformation (when δe → 1) perceptually invisible.
-            if A.is_word_end:
-                _append_plateau(blocks, pt_A, T_voy)
-                block_info.append(BlockInfo(n_steps=T_voy, kind="plateau"))
+            # NO Ve plateau here: the trajectory REACHES the word-end
+            # anchor and decays immediately (reference timit-to-Maeda
+            # _handle_b_terminal: direct _append_decay_block, no hold).
+            # An earlier "Ve plateau fix" (full-amplitude T_voy plateau
+            # before the decay, revoked 2026-10-07) held the coda @ for
+            # a full period — but a reduced word-end vowel is not
+            # pronounced as a tensed vowel ("one does not pronounce
+            # 'ibe'"): reach the target, then decay.
             _append_decay_block(blocks, block_info, pt_A, T_cons, pre_amp=1.0)
         elif B.kind == "synth":
             pass

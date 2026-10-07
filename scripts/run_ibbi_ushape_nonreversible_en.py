@@ -10,13 +10,11 @@ graph has reorganized from VC.VC (ib ib) to CV.CV (bi bi) at the fusion
 point (Tp=0, delta=1), restoring Tp does NOT bring back "ib ib".
 The /b/ stays in onset position.
 
-CONTINUOUS design (20 segments; author ruling 2026-10-07 — no more
-staircase of coarse pairs):
-  Seg 1-16:  "ib ib"  Tp decreasing CONTINUOUSLY 160→10 ms in 10-ms
-             steps (one engine pause step each), delta correlated
-             (delta = 0.5 + 0.5*(1-Tp/160))
-  Seg 17:    "bi bi"  Tp=0, delta=1.00         (FUSION — non-reversible!)
-  Seg 18-20: "bi bi"  held at the fusion point (stays as bi bi!)
+CONTINUOUS design (10 segments; author rulings 2026-10-07):
+  Seg 1-5:   "ib ib"  Tp decreasing 160, 120, 80, 40, 10 ms, delta
+             correlated (delta = 0.5 + 0.5*(1-Tp/160))
+  Seg 6:     "bi bi"  Tp=0, delta=1.00         (FUSION — non-reversible!)
+  Seg 7-10:  "bi bi"  held at the fusion point (stays as bi bi!)
 
 The descent uses "ib ib" (VC.VC, /b/ in coda).
 At the fusion point, input switches to "bi bi" (CV.CV, /b/ in onset)
@@ -101,15 +99,13 @@ GUI_LEN_MM = 195
 VALRECT = 0.75  # VLAM soft-rectification (per user request)
 TP_MAX_MS = 160.0
 
-# NON-REVERSIBLE CONTINUOUS ramp (author ruling 2026-10-07): Tp varies
-# CONTINUOUSLY — in 10-ms increments (one engine pause step, the finest
-# realizable resolution) — from 160 ms down to 0, delta correlated at
-# every point (delta = 0.5 + 0.5*(1 - Tp/160)), then STAYS at the
-# fusion point (Tp=0, delta=1: "bi bi") — the U descent without the
-# ascent (non-reversible transformation).
-_TP_DOWN = list(range(160, 0, -10)) + [0]      # 160, 150, ..., 10, 0
-TP_MS_VALUES = _TP_DOWN + [0, 0, 0]            # then held at fusion
-INPUT_TEXTS = ["ib ib"] * (_TP_DOWN.__len__() - 1) + ["bi bi"] * 4
+# NON-REVERSIBLE ramp, 10 segments (author rulings 2026-10-07:
+# continuous correlated Tp/delta descent to Tp=0/delta=1 — then
+# "ramener à 10 segments"). Tp decreases (delta correlated:
+# delta = 0.5 + 0.5*(1 - Tp/160)) to the fusion point and STAYS there:
+# the transformation is not undone.
+TP_MS_VALUES = [160, 120, 80, 40, 10, 0, 0, 0, 0, 0]
+INPUT_TEXTS = ["ib ib"] * 5 + ["bi bi"] * 5
 
 MAEDA_LABELS = ["Jaw", "Body", "Dorsum", "Tip", "LipP", "LipH", "Hy"]
 MAEDA_COLORS = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728",
@@ -142,12 +138,12 @@ def form_label(tp_ms: float, input_text: str, idx: int) -> str:
 
 
 def u_position(idx: int, total: int) -> str:
-    n_desc = total - 4  # the last 4 segments are the fusion hold
+    n_desc = total - 5  # the last 5 segments are the fusion hold
     if idx < n_desc:
         return f"continuous descent {idx + 1}/{n_desc} (ib ib)"
     if idx == n_desc:
         return "FUSION POINT (ib ib -> bi bi)"
-    return f"fusion hold {idx - n_desc}/3 (bi bi — NON-REVERSIBLE)"
+    return f"fusion hold {idx - n_desc}/4 (bi bi — NON-REVERSIBLE)"
 
 
 def get_phoneme_inventory():

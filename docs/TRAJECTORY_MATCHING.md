@@ -208,6 +208,30 @@ Both HTMLs re-embedded with chapter lists rebuilt from the measured
 segment durations and "continuous ramp" subtitles. Control frame
 verified (Seg 17/33 = bottom of U: Tp=0, δ=1.000, bi bi fusion).
 
+### Then: 10 segments + NO held @ (2026-10-07, author rulings)
+
+"Ramener à 10 segments" — both /ibi/ sweeps reduced to 10 segments
+(still one continuous correlated flow, no restarts):
+reversible Tp = [160, 120, 80, 40, 0, 40, 80, 120, 160, 160]
+(U with end baseline; dual video 18.64 s); non-reversible
+Tp = [160, 120, 80, 40, 10, 0, 0, 0, 0, 0] (descent + fusion hold;
+dual video 15.83 s). HTMLs re-embedded (10-chapter lists).
+
+"No held @: on ne prononce pas 'ibe'" — the "Ve plateau fix"
+(a full-amplitude T_voy plateau before the decay at word-end Ve) is
+REVOKED. VERIFIED in the reference timit-to-Maeda
+(`synthSYL/trajectory.py::_handle_b_terminal`): the decay block
+follows the word-end anchor DIRECTLY, with no plateau — the plateau
+was a bigbi-demos addition. Our engine now matches it
+(`synthSYL/trajectory.py`, same handler): "ib ib" drops from 240 to
+208 steps (the 160-ms @ hold after each coda /b/ is gone; the
+trajectory reaches the @ and decays). Unaffected (verified by block
+probes): the nuclear-vowel holds of CV words ("bi": final /i/ via the
+last-anchor hold), "big.bi" (176 steps, unchanged), "ibia" (90 steps,
+unchanged → all reference gates re-verified at 0.000e+00). The
+supplement /ib/ renditions drop from 1280 to 1120 ms. The trough HTML
+contains no plateau text and /ibi/ has no coda @ — unaffected.
+
 ### ν convention — confirmed: no confusion in the engine, only in the display
 
 Verification against Eq. 2 of arXiv:2307.02299
