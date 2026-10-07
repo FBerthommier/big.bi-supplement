@@ -2468,7 +2468,7 @@ def synthwordfen(
     articulatory_params: np.ndarray,
     word_tokens: Sequence[str],
     f0_scale: float = 1.0,
-    soft_rect_s: float = 0.75,
+    soft_rect_s: float = 1.10,
     duration_factor: float = 16.0,
     envelope: Optional[np.ndarray] = None,
     config: Optional[SynthConfig] = None,
@@ -2506,7 +2506,8 @@ def synthwordfen(
         Scale factor applied to the F0 contour. ``1.0`` = no
         modification. ``2.0`` = doubled F0 (female/child voice).
     soft_rect_s : float
-        Soft-rectification parameter of the sections (default: 0.75).
+        Soft-rectification parameter of the sections (default: 1.10;
+        historical canonical value: 0.75).
     duration_factor : float
         Duration factor for the computed phonological envelope. In the
         original code, duration of a phonological frame = ``dur * fs * T_s``.

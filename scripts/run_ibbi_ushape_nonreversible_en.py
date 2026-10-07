@@ -23,7 +23,7 @@ The descent uses "ib ib" (VC.VC, /b/ in coda).
 At the fusion point, input switches to "bi bi" (CV.CV, /b/ in onset).
 The ascent restores Tp but keeps "bi bi" — the /b/ stays in onset.
 
-Article parameters: T=16, K=10, Kvoy=30, Pexp=1, nu=-1, valrect=0.75.
+Article parameters: T=16, K=10, Kvoy=30, Pexp=1, nu=-1, valrect=1.10.
 US English.
 
 Output: <repo>/output/ibbi_ushape_nonrev_en/
@@ -99,7 +99,7 @@ FS_AUDIO = 20_000
 TRAIL_MS = 500          # fading trail length (ms) — short enough that
                         # past trajectories clearly yield to the current one
 GUI_LEN_MM = 195
-VALRECT = 0.75  # VLAM soft-rectification (per user request)
+VALRECT = 1.10  # VLAM soft-rectification (author ruling 2026-10-07)
 TP_MAX_MS = 160.0
 
 # NON-REVERSIBLE U-shaped Tp, 10 segments (author rulings 2026-10-07:
@@ -668,7 +668,7 @@ def main() -> int:
     print("=" * 72)
     print("NON-REVERSIBLE U-shaped Tp variation")
     print("ib ib -> FUSION (bi bi) -> bi bi (Tp restored, NON-REVERSIBLE)")
-    print("arXiv:2307.02299 (Berthommier 2023) — US English, T=16, valrect=0.75")
+    print(f"arXiv:2307.02299 (Berthommier 2023) — US English, T=16, valrect={VALRECT}")
     print("=" * 72)
     print(f"  Segments: {len(TP_MS_VALUES)}")
     print(f"  First half (ib ib): Tp 160->10 ms (descending)")

@@ -80,7 +80,7 @@ import run_locus_trough_demos as ltd  # noqa: E402
 T_STEP_MS = ltd.T_STEP_MS          # 10
 FS_AUDIO = ltd.FS_AUDIO            # 20000
 GUI_LEN_MM = ltd.GUI_LEN_MM        # 195
-VALRECT = ltd.VALRECT              # 0.75
+VALRECT = ltd.VALRECT              # 1.10 (author ruling 2026-10-07)
 
 OUT_DIR = REPO_ROOT / "docs" / "figures" / "article_format"
 FIG_DIR = REPO_ROOT / "docs" / "figures"

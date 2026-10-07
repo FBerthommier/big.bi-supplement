@@ -59,7 +59,7 @@ def run_one(tp_ms, label, idx):
         state=state,
         articulatory_params=result.Pval,
         word_tokens=["O", "V", "F"],
-        f0_scale=1.0, soft_rect_s=0.75,
+        f0_scale=1.0, soft_rect_s=1.10,
         duration_factor=T, envelope=result.envelope, config=config,
     )
     sig = sr.signal

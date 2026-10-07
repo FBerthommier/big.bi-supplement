@@ -90,7 +90,7 @@ except ImportError:  # standalone fallback if config.py is absent
     T_STEP_MS = 10
     FS_AUDIO = 20_000
     GUI_LEN_MM = 195
-    VALRECT = 0.75
+    VALRECT = 1.10  # author ruling 2026-10-07 (was 0.75)
     LOCUS_OFFSET_STEPS = 3
 
 from synthSYL import panphon_pipeline  # noqa: E402

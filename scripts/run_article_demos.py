@@ -73,7 +73,7 @@ K_C_DISPLAY = 10.0       # consonantal display curvature (article K=10)
 SR_DISPLAY = 1000.0      # display sample rate (10x engine for smooth curves)
 FS_AUDIO = 20_000
 GUI_LEN_MM = 195
-VALRECT = 0.75
+VALRECT = 1.10  # author ruling 2026-10-07 (reduces the fizz on /i/)
 
 OUT_BASE = REPO_ROOT / "output" / "article_demos"
 DEMO1_DIR = OUT_BASE / "demo1_ibia"

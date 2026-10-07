@@ -467,7 +467,7 @@ def main() -> None:
                         help="Input frame rate of the parameters (Hz)")
     parser.add_argument("--fs-out", type=float, default=100.0,
                         help="Output frame rate for the video (fps)")
-    parser.add_argument("--valrect", type=float, default=0.75,
+    parser.add_argument("--valrect", type=float, default=1.10,
                         help="VLAM soft-rectification parameter")
     parser.add_argument("--gui-len", type=int, default=195,
                         help="Vocal-tract length (mm) for VlamState.initial")

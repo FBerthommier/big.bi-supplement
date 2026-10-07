@@ -22,7 +22,7 @@ Three original simulations:
      is given in the supplement."
 
 Article parameters: T=10 (for /ibia/), T=16 (for big.bi/bi.gbi),
-K=10, Kvoy=30, Pexp=1, nu=-1, valrect=0.75.
+K=10, Kvoy=30, Pexp=1, nu=-1, valrect=1.10.
 
 Output: <repo>/output/article_original_simulations/
 
@@ -76,7 +76,7 @@ K_C_DISPLAY = 10.0       # consonantal display curvature (article K=10)
 SR_DISPLAY = 1000.0      # display sample rate (10x engine for smooth curves)
 FS_AUDIO = 20_000
 GUI_LEN_MM = 195
-VALRECT = 0.75  # VLAM soft-rectification
+VALRECT = 1.10  # VLAM soft-rectification (author ruling 2026-10-07)
 
 OUT_BASE = REPO_ROOT / "output" / "article_original_simulations"
 FIG1_DIR = OUT_BASE / "figure1_ibia"       # /ibia/ with T=100ms
@@ -552,7 +552,7 @@ def main():
     print("=" * 72)
     print("ORIGINAL SIMULATIONS (exact article parameters)")
     print("arXiv:2307.02299 (Berthommier 2023)")
-    print("K=10, Kvoy=30, Pexp=1, nu=-1, valrect=0.75")
+    print(f"K=10, Kvoy=30, Pexp=1, nu=-1, valrect={VALRECT}")
     print("=" * 72)
 
     run_figure1_ibia()

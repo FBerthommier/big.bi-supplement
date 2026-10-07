@@ -70,8 +70,8 @@ def main() -> None:
                         help='Output directory for the .wav files')
     parser.add_argument('--dur', type=int, default=16,
                         help='Duration factor T (Maeda) (default: 16)')
-    parser.add_argument('--valrect', type=float, default=0.75,
-                        help='VLAM soft-rectification factor (default: 0.75)')
+    parser.add_argument('--valrect', type=float, default=1.10,
+                        help='VLAM soft-rectification factor (default: 1.10)')
     parser.add_argument('--cf0', type=float, default=1,
                         help='F0 scaling factor (default: 1)')
     parser.add_argument('--word', type=str, default='O V F',

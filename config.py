@@ -40,10 +40,10 @@ FPS_OUT = 25.0        # Output video frame rate
 FS_AUDIO = 20_000     # Audio sample rate (Hz)
 TRAIL_MS = 750        # Polar trail length (ms)
 GUI_LEN_MM = 195      # Vocal tract length (mm, adult male)
-VALRECT = 0.75        # VLAM soft-rectification (canonical value from
-                      # timit-to-Maeda: default of vlam.synthwordfen and
-                      # of batch_synthesize.py --valrect; applied to the
-                      # area function, not to articulatory parameters)
+VALRECT = 1.10        # VLAM soft-rectification (author ruling 2026-10-07,
+                      # reduces the perceived fizz on /i/; historical
+                      # canonical value from timit-to-Maeda: 0.75; applied
+                      # to the area function, not to articulatory params)
 LOCUS_OFFSET_STEPS = 3  # Locus-equation measurement (article Fig. 3):
                         # F2 sampled 30 ms (3 steps of 10 ms) after the
                         # consonant release (start of the C->V block)

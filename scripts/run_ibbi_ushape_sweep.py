@@ -89,7 +89,7 @@ FS_AUDIO = 20_000
 TRAIL_MS = 500          # fading trail length (ms) — short enough that
                         # past trajectories clearly yield to the current one
 GUI_LEN_MM = 195
-VALRECT = 0.75
+VALRECT = 1.10  # author ruling 2026-10-07 (was 0.75)
 TP_MAX_MS = 160.0  # Tp = T = 16 steps = 160 ms at start/end
 
 # CONTINUOUS U-shaped Tp ramp, 10 segments (author rulings 2026-10-07:
@@ -188,7 +188,7 @@ def synthesize_wav(result, state, config, out_path: Path) -> np.ndarray:
         state=state,
         articulatory_params=result.Pval,
         word_tokens=["O", "V", "F"],
-        f0_scale=1.0, soft_rect_s=0.75,
+        f0_scale=1.0, soft_rect_s=VALRECT,
         duration_factor=T_BASE, envelope=result.envelope, config=config,
     )
     sig = sr.signal
