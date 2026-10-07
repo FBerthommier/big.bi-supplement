@@ -2,23 +2,25 @@
 # SPDX-License-Identifier: MIT
 # -*- coding: utf-8 -*-
 """
-run_ibbi_ushape_nonreversible_en.py — NON-REVERSIBLE U-shaped Tp
-variation: ib ib → fusion (bi bi) → bi bi (with restored Tp).
+run_ibbi_ushape_nonreversible_en.py — NON-REVERSIBLE CONTINUOUS Tp
+variation: ib ib → fusion (bi bi) → bi bi (held).
 
 Key insight: the verbal transformation is NON-REVERSIBLE. Once the
 graph has reorganized from VC.VC (ib ib) to CV.CV (bi bi) at the fusion
 point (Tp=0, delta=1), restoring Tp does NOT bring back "ib ib".
-The /b/ stays in onset position — the listener still perceives "bi bi"
-even with a long pause.
+The /b/ stays in onset position.
 
-Design (11 segments):
-  Seg 1-5:  "ib ib"  Tp decreasing 160→10 ms  (approaching fusion)
-  Seg 6:    "bi bi"  Tp=0, delta=1.00         (FUSION — non-reversible!)
-  Seg 7-11: "bi bi"  Tp increasing 10→160 ms  (stays as bi bi!)
+CONTINUOUS design (20 segments; author ruling 2026-10-07 — no more
+staircase of coarse pairs):
+  Seg 1-16:  "ib ib"  Tp decreasing CONTINUOUSLY 160→10 ms in 10-ms
+             steps (one engine pause step each), delta correlated
+             (delta = 0.5 + 0.5*(1-Tp/160))
+  Seg 17:    "bi bi"  Tp=0, delta=1.00         (FUSION — non-reversible!)
+  Seg 18-20: "bi bi"  held at the fusion point (stays as bi bi!)
 
-The first half uses "ib ib" (VC.VC, /b/ in coda).
-At the fusion point, input switches to "bi bi" (CV.CV, /b/ in onset).
-The second half restores Tp but keeps "bi bi" — the /b/ stays in onset.
+The descent uses "ib ib" (VC.VC, /b/ in coda).
+At the fusion point, input switches to "bi bi" (CV.CV, /b/ in onset)
+and STAYS there — the transformation is not undone.
 
 Article parameters: T=16, K=10, Kvoy=30, Pexp=1, nu=-1, valrect=0.75.
 US English.
@@ -99,13 +101,15 @@ GUI_LEN_MM = 195
 VALRECT = 0.75  # VLAM soft-rectification (per user request)
 TP_MAX_MS = 160.0
 
-# NON-REVERSIBLE U-shape design:
-# First half: "ib ib" (VC.VC) with decreasing Tp → approaching fusion
-# Bottom: "bi bi" (CV.CV) at Tp=0, δ=1 → FUSION (non-reversible!)
-# Second half: "bi bi" with increasing Tp → stays as bi bi (NON-REVERSIBLE)
-TP_MS_VALUES = [160, 120, 80, 40, 10,    0,    10, 40, 80, 120, 160]
-INPUT_TEXTS  = ["ib ib"] * 5 + ["bi bi"] + ["bi bi"] * 5
-# 11 segments total
+# NON-REVERSIBLE CONTINUOUS ramp (author ruling 2026-10-07): Tp varies
+# CONTINUOUSLY — in 10-ms increments (one engine pause step, the finest
+# realizable resolution) — from 160 ms down to 0, delta correlated at
+# every point (delta = 0.5 + 0.5*(1 - Tp/160)), then STAYS at the
+# fusion point (Tp=0, delta=1: "bi bi") — the U descent without the
+# ascent (non-reversible transformation).
+_TP_DOWN = list(range(160, 0, -10)) + [0]      # 160, 150, ..., 10, 0
+TP_MS_VALUES = _TP_DOWN + [0, 0, 0]            # then held at fusion
+INPUT_TEXTS = ["ib ib"] * (_TP_DOWN.__len__() - 1) + ["bi bi"] * 4
 
 MAEDA_LABELS = ["Jaw", "Body", "Dorsum", "Tip", "LipP", "LipH", "Hy"]
 MAEDA_COLORS = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728",
@@ -125,34 +129,25 @@ def delta_for_tp_ms(tp_ms: float) -> float:
 
 def form_label(tp_ms: float, input_text: str, idx: int) -> str:
     is_bi = (input_text == "bi bi")
-    if idx == 5:  # seg 6 (0-indexed 5) = bottom = fusion
-        return "bi bi (FUSION — non-reversible!)"
     if is_bi:
-        if tp_ms >= 160:
-            return "bi bi (Tp restored, /b/ stays in onset — NON-REVERSIBLE)"
-        if tp_ms > 60:
-            return "bi bi (still onset, Tp increasing)"
-        if tp_ms > 0:
-            return "bi bi (onset, Tp increasing)"
-        return "bi bi (fusion)"
-    # ib ib (first half)
+        return "bi bi (FUSION — non-reversible: /b/ stays in onset)"
+    # continuous ib ib descent
     if tp_ms >= 160:
         return "ib ib (clear baseline — schwa @ in coda)"
     if tp_ms > 60:
         return "ib ib (audible schwa)"
     if tp_ms > 20:
         return "ib ib (residual schwa)"
-    if tp_ms > 0:
-        return "ib ib -> bi bi (transition)"
-    return "bi bi (fusion)"
+    return "ib ib -> bi bi (approaching fusion)"
 
 
 def u_position(idx: int, total: int) -> str:
-    if idx < 5:
-        return f"descending {idx+1}/5 (ib ib)"
-    if idx == 5:
+    n_desc = total - 4  # the last 4 segments are the fusion hold
+    if idx < n_desc:
+        return f"continuous descent {idx + 1}/{n_desc} (ib ib)"
+    if idx == n_desc:
         return "FUSION POINT (ib ib -> bi bi)"
-    return f"ascending {idx-5}/5 (bi bi — NON-REVERSIBLE)"
+    return f"fusion hold {idx - n_desc}/3 (bi bi — NON-REVERSIBLE)"
 
 
 def get_phoneme_inventory():

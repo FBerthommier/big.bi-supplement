@@ -535,17 +535,26 @@ carries no $T_p$ dimension.
 python scripts/run_ibbi_ushape_sweep.py
 \end{lstlisting}
 
-The 13 segments use $T_p$ values:
+The sweep is a \textbf{continuous U-shaped ramp} (33 segments):
+$T_p$ decreases in 10-ms increments --- one engine pause step at a
+time, the finest realizable resolution --- from 160~ms down to 0,
+with $\delta$ correlated at every point
+($\delta = 0.5 + 0.5\,(1 - T_p/160)$), then increases back to
+160~ms:
 \begin{center}
-\begin{tabular}{ccccccccccccc}
+\begin{tabular}{lccc}
 \toprule
-Seg & 1--2 & 3 & 4 & 5 & 6 & \textbf{7} & 8 & 9 & 10 & 11 & 12--13 \\
+ & Segments & $T_p$ (ms) & $\delta$ \\
 \midrule
-$T_p$ (ms) & 160 & 120 & 80 & 40 & 10 & \textbf{0} & 10 & 40 & 80 & 120 & 160 \\
-$\delta$   & 0.50 & 0.625 & 0.75 & 0.875 & 0.969 & \textbf{1.0} & 0.969 & 0.875 & 0.75 & 0.625 & 0.50 \\
+descent & 1--16 & 160, 150, \dots, 10 & 0.50 \dots 0.969 \\
+bottom (fusion, \texttt{bi bi}) & 17 & 0 & \textbf{1.000} \\
+ascent & 18--33 & 10, 20, \dots, 160 & 0.969 \dots 0.50 \\
 \bottomrule
 \end{tabular}
 \end{center}
+Each successive pair flows directly into the next, so the listener
+perceives one continuous acceleration into \texttt{bi bi} and back,
+not a staircase of discrete renditions. Duration $\approx$ 71~s.
 
 \subsection{Demonstration 3: Comparison with the article}
 
@@ -1226,31 +1235,34 @@ $\approx$ 24.2~s.
 Features: dual-panel video (sagittal Maeda | polar plot with phoneme),
 14 segments, WebVTT captions, indexed transcript, keyboard shortcuts.
 
-\subsection{ib ib $\to$ bi bi (NON-REVERSIBLE U-shape)}
+\subsection{ib ib $\to$ bi bi (NON-REVERSIBLE continuous descent)}
 
-\texttt{simulations/ibbi\_ushape\_nonreversible\_embedded.html} (5.1 MB)
+\texttt{simulations/ibbi\_ushape\_nonreversible\_embedded.html}
+($\approx$ 7.4 MB)
 
 This simulation demonstrates the \textbf{non-reversible} verbal
-transformation. The first half uses ``ib ib'' (VC.VC, /b/ in coda)
-with decreasing $T_p$. At the fusion point ($T_p=0$, $\delta=1$),
-the input switches to ``bi bi'' (CV.CV, /b/ in onset). The second
-half restores $T_p$ but keeps ``bi bi'' --- the /b/ stays in onset
-position even with a fully restored pause, proving the transformation
-is permanent and non-reversible.
+transformation as a \textbf{continuous descent}: ``ib ib'' (VC.VC,
+/b/ in coda) with $T_p$ decreasing in 10-ms steps from 160~ms to 0
+($\delta$ correlated at every point). At the fusion point
+($T_p=0$, $\delta=1$), the input switches to ``bi bi'' (CV.CV, /b/ in
+onset) and STAYS there --- the transformation is permanent and
+non-reversible. Duration $\approx$ 40~s (20 segments).
 
-Features: dual-panel video, 11 segments, WebVTT captions, indexed
+Features: dual-panel video, 20 segments, WebVTT captions, indexed
 transcript, keyboard shortcuts.
 
 \subsection{ib ib $\to$ bi bi (U-shape, reversible)}
 
-\texttt{simulations/ibbi\_ushape\_embedded.html} (6.8 MB)
+\texttt{simulations/ibbi\_ushape\_embedded.html} ($\approx$ 12 MB)
 
-The reversible version of the U-shape: ``ib ib'' throughout, with
-$T_p$ going 160 ms $\to$ 0 $\to$ 160 ms. This version goes back to
-``ib ib'' at the end (reversible). Included for comparison with the
-non-reversible version above.
+The reversible version: a \textbf{continuous U-shaped ramp} (see
+Demonstration~2) --- ``ib ib'' throughout, with $T_p$ decreasing in
+10-ms steps from 160~ms to 0 and back up to 160~ms, $\delta$
+correlated. This version returns to ``ib ib'' at the end
+(reversible). Included for comparison with the non-reversible version
+above. Duration $\approx$ 71~s (33 segments).
 
-Features: dual-panel video, 13 segments, WebVTT captions, indexed
+Features: dual-panel video, 33 segments, WebVTT captions, indexed
 transcript, keyboard shortcuts.
 
 % ════════════════════════════════════════════════════════════════

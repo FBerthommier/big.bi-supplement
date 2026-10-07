@@ -5,16 +5,18 @@
 run_ibbi_ushape_sweep_en.py — ib ib → bi bi transition with a U-shaped
 variation of Tp (pause duration), T=16, US English.
 
-U-shape design (13 segments):
-  Segments 0-1: Tp = 160 ms (factor=1.0), δ=0.50 — "ib ib" baseline (clear)
-  Segments 2-5: Tp decreasing: 120, 80, 40, 10 ms (transition toward bi bi)
-  Segment 6:   Tp = 0 ms (factor=0), δ=1.00 — "bi bi" fusion (bottom of U)
-  Segments 7-10: Tp increasing: 10, 40, 80, 120 ms (back toward ib ib)
-  Segments 11-12: Tp = 160 ms, δ=0.50 — "ib ib" baseline (clear)
+CONTINUOUS U-shape design (33 segments; author ruling 2026-10-07 — no
+more staircase of coarse pairs):
+  Tp decreases CONTINUOUSLY from 160 ms to 0 in 10-ms increments (one
+  engine pause step per segment — the finest realizable resolution),
+  with delta correlated at every point (delta = 0.5 + 0.5*(1-Tp/160)):
+  segment k has Tp = max(160 - 10k, 0). The bottom of the U
+  (Tp = 0, delta = 1) is the fused "bi bi". Tp then increases
+  continuously back to 160 ms (return to the "ib ib" baseline).
 
 The U-shape lets the listener clearly perceive:
   - "ib ib" at the start (full pause, audible schwa)
-  - "bi bi" in the middle (no pause, fusion Vo=Ve=V)
+  - a CONTINUOUS acceleration into "bi bi" (no pause, fusion Vo=Ve=V)
   - "ib ib" again at the end (return to baseline)
 
 Output: <repo>/output/ibbi_ushape_en/
@@ -93,8 +95,15 @@ GUI_LEN_MM = 195
 VALRECT = 0.75
 TP_MAX_MS = 160.0  # Tp = T = 16 steps = 160 ms at start/end
 
-# U-shaped Tp values (ms): 160, 160, 120, 80, 40, 10, 0, 10, 40, 80, 120, 160, 160
-TP_MS_VALUES = [160, 160, 120, 80, 40, 10, 0, 10, 40, 80, 120, 160, 160]
+# CONTINUOUS U-shaped Tp ramp (author ruling 2026-10-07): instead of a
+# staircase of coarse (Tp, delta) pairs, Tp varies CONTINUOUSLY — in
+# 10-ms increments, i.e. one engine pause step at a time (the finest
+# resolution the engine can realize) — from 160 ms down to 0 and back
+# up to 160 ms, with delta correlated at every point
+# (delta = 0.5 + 0.5*(1 - Tp/160): Tp=160 -> delta=0.5 schwa, Tp=0 ->
+# delta=1 fusion). The bottom of the U (Tp=0) is the fused "bi bi".
+_TP_DOWN = list(range(160, 0, -10)) + [0]      # 160, 150, ..., 10, 0
+TP_MS_VALUES = _TP_DOWN + _TP_DOWN[-2::-1]     # ... then 10, ..., 160
 
 MAEDA_LABELS = ["Jaw", "Body", "Dorsum", "Tip", "LipP", "LipH", "Hy"]
 MAEDA_COLORS = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728",

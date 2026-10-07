@@ -186,6 +186,28 @@ The standalone Tp sweeps (`run_ibbi_ushape_sweep.py`,
 the /ibi/ supplement transformation (§3), where the inter-word pause
 IS the object of study.
 
+### /ibi/ sweeps: continuous correlated Tp ramp (2026-10-07, author ruling)
+
+"Modifier le principe des deux démonstrations ib ib: ne pas construire
+des suites de paires mais faire varier Tp de façon continue et
+corrélée avec delta jusqu'à Tp = 0 et delta = 1 — garder la notion de
+variation en U." Applied to both sweeps:
+
+* **Reversible** (`run_ibbi_ushape_sweep.py`): the 13-value staircase
+  becomes a CONTINUOUS ramp of 33 segments — Tp = 160, 150, …, 10, 0
+  (10-ms steps, one engine pause step each: the finest realizable
+  resolution), then back up 10 … 160. delta correlated at every point
+  (0.5 + 0.5(1−Tp/160)); the bottom of the U (Tp=0) is the fused
+  "bi bi". Dual video: 70.96 s (was ~28 s).
+* **Non-reversible** (`run_ibbi_ushape_nonreversible_en.py`): the same
+  continuous descent (16 "ib ib" segments, Tp 160→10), the fusion
+  point (Tp=0, delta=1, "bi bi"), then HELD at fusion (3 segments).
+  Dual video: 40.09 s (was 19.82 s).
+
+Both HTMLs re-embedded with chapter lists rebuilt from the measured
+segment durations and "continuous ramp" subtitles. Control frame
+verified (Seg 17/33 = bottom of U: Tp=0, δ=1.000, bi bi fusion).
+
 ### ν convention — confirmed: no confusion in the engine, only in the display
 
 Verification against Eq. 2 of arXiv:2307.02299
