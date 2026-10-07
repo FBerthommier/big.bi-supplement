@@ -183,6 +183,28 @@ def build_branches(blocks: List[dict], n_steps: int,
                          orientation="inverse")
         return z
 
+    def z_leg_orig(p_dep, p_arr, th_lo, th_hi, K, nu, n_ms,
+                   drop_first=False):
+        """ORIGINAL Syllable_Synthesis display sub-arc (arcplot): the
+        departure-side point is the polar DEPARTURE (pd) and the
+        arrival-side point the ARRIVAL carrying the phase (pa):
+            z(th) = rho(th)*p_arr*exp(i*nu*th/K) + (1-rho(th))*p_dep,
+        rho = cos(th/2), with theta in [0, pi] for the approach leg
+        and [-pi, 0] (first sample dropped, opint=-1) for the release
+        legs. This is what makes the closed V->C->V gesture a
+        TEARDROP: rounded belly at the vowel, pointed at the consonant
+        (article Fig. 4), because the phase perturbation sits on the
+        SHORTER radius (rho_V < rho_C)."""
+        n = max(2, int(round(n_ms * sr_display / 1000.0)))
+        if drop_first:
+            th = np.linspace(th_lo, th_hi, n + 1)[1:]
+        else:
+            th = np.linspace(th_lo, th_hi, n)
+        rho = np.cos(th / 2.0)
+        z_arr = p_arr[0] * np.exp(1j * (p_arr[1] + nu * th / K))
+        z_dep = p_dep[0] * np.exp(1j * p_dep[1])
+        return rho * z_arr + (1 - rho) * z_dep
+
     def z_hold(pt, n_ms):
         z, _ = stationary_point(pt[0], pt[1], duration_ms=n_ms,
                                 sr=sr_display)
@@ -215,8 +237,23 @@ def build_branches(blocks: List[dict], n_steps: int,
             zv_parts.append(z_arc(b["dep"], b["arr"], n_ms, k_v, nu_v))
             pts = [b["dep"]] + [[r, t] for _, r, t in b["cons"]] + [b["arr"]]
             T_ms = b["T"] * t_step_ms
-            subs = [z_arc(pts[j], pts[j + 1], T_ms, k_c, nu_c)
-                    for j in range(len(pts) - 1)]
+            # ORIGINAL Syllable_Synthesis display (makelooplot): each
+            # sub-arc is anchored on its DEPARTURE-side point, phase on
+            # the ARRIVAL-side point; approach leg sweeps theta in
+            # [0, pi], the following legs in [-pi, 0] (first sample
+            # dropped).
+            subs = []
+            for j in range(len(pts) - 1):
+                th_lo, th_hi = (0.0, np.pi) if j == 0 else (-np.pi, 0.0)
+                if j == 0:
+                    # approach leg V1->C1: original pt=[[C1, V1]] i.e.
+                    # pd=C1 (departure), pa=V1 (phase carrier)
+                    leg = z_leg_orig(pts[1], pts[0], th_lo, th_hi,
+                                     k_c, nu_c, T_ms)
+                else:
+                    leg = z_leg_orig(pts[j], pts[j + 1], th_lo, th_hi,
+                                     k_c, nu_c, T_ms, drop_first=True)
+                subs.append(leg)
             zc = np.concatenate(subs)
             if len(zc) < nd:
                 zc = np.concatenate(

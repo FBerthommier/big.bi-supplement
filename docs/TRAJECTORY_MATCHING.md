@@ -153,6 +153,34 @@ bit-identical (0.000e+00) because every validated gate uses symmetric
 delta_o = delta_e, where the new formula gives the same value; the
 "big@bi" schwa demonstrations are preserved.
 
+### Teardrop loop SOLVED — ported from the original Syllable_Synthesis display
+
+The author pointed to FBerthommier/Syllable_Synthesis (`synthSYL.py`,
+the code behind the article figures). Its display builder
+`makelooplot`/`arcplot` differs from our reconstruction in the sub-arc
+ANCHORING: each leg is drawn with the departure-side point as polar
+departure (pd) and the arrival-side point as phase carrier (pa):
+`z(θ) = ρ(θ)·p_a·e^{iνθ/K} + (1−ρ(θ))·p_d`, ρ = cos(θ/2), with the
+approach leg (V→C) sweeping θ ∈ [0, π] (pd = C, pa = V) and the
+release legs θ ∈ [−π, 0] (first sample dropped, opint = −1). The phase
+perturbation therefore sits on the SHORTER radius (ρ_V = 0.9 < ρ_C =
+1.2), which produces exactly the article's closed TEARDROP: rounded
+belly at the vowel, pointed at the consonant. (Our previous drawing
+put the phase on the arrival C — with ρ_C larger, the bow always
+bulged consonant-side; a closed V→b→V pair in that anchoring is a
+symmetric lens, and the earlier wedge attempt was rejected.)
+
+`polar_sync.build_branches` now draws z_c sub-arcs with this original
+anchoring (z_leg_orig). Verified on the 'bi' loop of big.bi
+(COEFCEN=1, VOYDEB=0.5): closed loop (|end−start| = 0.0000), width
+profile peaks at chord fraction 0.35 from /i/ (0.163) and falls to
+0.058→0 at /b/ — belly at the vowel, pointed at the consonant, as in
+Figure 4. All reference reproductions remain bit-identical
+(0.000e+00). Figures regenerated:
+fig_bigbi_article_conditions_nu_inv.png,
+fig_words_article_conditions_nu_inv.png. Sweep scripts use
+polar_sync, so the next video regeneration carries the teardrops.
+
 ## Limitations / next step
 
 The 472-px reference allows topology matching and target-layout
