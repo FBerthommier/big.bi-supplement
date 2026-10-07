@@ -689,6 +689,35 @@ machinery --- decay + pause arc $\approx 2T$ --- which, as established,
 is not part of big.bi: the '.' is a C.C syllable boundary without
 pause, and the only latencies are the stop closures.)
 
+\subsection{Audio verification: per-segment WAVs, /i/ height, valrect}
+
+Every simulation writes its segments as SEPARATE WAV files, so the
+/i/ vowels can be compared by ear:
+\begin{itemize}
+\item \texttt{output/ibbi\_ushape\_en/wav/synth\_sNN\_tpXXX.wav} ---
+  reversible U-shape, one file per segment;
+\item \texttt{output/ibbi\_ushape\_nonrev\_en/wav/} --- non-reversible;
+\item \texttt{output/bigbi\_polar\_sweep/wav/synth\_dXXX.wav} ---
+  big.bi $\to$ bi.gbi sweep;
+\item \texttt{original\_simulations/*/} and
+  \texttt{output/article\_demos/} --- article reproductions.
+\end{itemize}
+
+Measured on the current 10-segment sweeps (autocorrelation F0 on the
+vowel plateaus): the median F0 is constant across segments
+($\approx$ 119--124~Hz, cf0 $= 1.0$ everywhere) --- the /i/ vowels all
+sit at the same pitch; the small median shift between ``ib ib'' and
+``bi bi'' segments is a formant-related measurement bias, not a pitch
+difference. No digital clipping anywhere ($<$0.02\,\% of samples at
+peak). \texttt{valrect} (the soft-rectification smoothness of the
+vocal-tract area function, \texttt{soft\_rect(x, s)} with
+$s = 0$ $\equiv$ hard rectification) is \textbf{0.75 in every
+script} (the article's canonical value). Raising it to 1.1--1.5 was
+tested: the high-frequency energy ratio above 5~kHz decreases only
+marginally (0.17\,\% $\to$ 0.14\,\%) with no change in F0 or
+duration; test WAVs for listening comparison are kept outside the
+repository (\texttt{P:$\backslash$bigbi-workspace$\backslash$valrect\_test\_*.wav}).
+
 \subsection{Perceptual salience of the schwa @}
 
 With $T=16$ and $\delta = 0.50$, the boundary schwa @ in
