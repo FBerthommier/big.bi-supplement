@@ -222,9 +222,9 @@ P_i = \Omega_i + \rho \cdot \Psi_{1,i} \cdot \cos(\Psi_{2,i} - \theta)
 \end{equation}
 
 where $\Omega$, $\Psi_1$, and $\Psi_2$ are calibration constants
-(article Table~1). The CO matrix in \texttt{synthSYL/constants.py}
-matches the article's Table~1 almost exactly (only the Tip parameter
-$c_0$ differs slightly: $-2.75$ in synthSYL vs $-3.0$ in the article).
+(article Table~1). The CO matrix matches the article's Table~1 almost
+exactly; the only difference is the Tip parameter $c_0$: $-2.75$ in
+\texttt{synthSYL/}\texttt{constants.py} vs $-3.0$ in the article.
 
 \subsection{Article parameters}
 
@@ -632,10 +632,17 @@ remains available as \texttt{zv\_form="polar\_arc"} for the record.
 \subsection{Comparison with the article's Figure~4}
 
 Under the article figure conditions (COEFCEN $= 1$, VOYDEB $= 0.5$,
-$T = 16$), the reproduced planning panels
-(\texttt{docs/figures/article\_format/figure4\_bigbi\_bigbi.png},
-\texttt{fig\_bigbi\_article\_conditions\_nu\_inv.png} and
-\texttt{fig\_words\_article\_conditions\_nu\_inv.png}) show:
+$T = 16$), the reproduced planning panels (under
+\texttt{docs/figures/}) are:
+\begin{itemize}
+\item \texttt{article\_format/figure4\_bigbi\_bigbi.png}
+  (article-format figure, \S11.6);
+\item \texttt{fig\_bigbi\_article\_conditions\_nu\_inv.png}
+  (big.bi $|$ bi.gbi, two panels);
+\item \texttt{fig\_words\_article\_conditions\_nu\_inv.png}
+  (per-word panels: ``big'', ``bi'', ``.gbi'').
+\end{itemize}
+They show:
 \begin{itemize}
 \item big.bi: \textbf{3} separate $z_c$ gestures --- /b/ (onset),
   palatal /g/ (coda), /b/ (word-2 onset, a closed loop anchored on
@@ -747,7 +754,7 @@ $V = /i/$ (COEFCEN $= 1$) and the perception shifts from
 \subsection{Modified files (vs original timit-to-Maeda)}
 
 \begin{center}
-\begin{tabular}{ll}
+\begin{tabular}{@{}l p{0.52\textwidth}@{}}
 \toprule
 \textbf{File} & \textbf{Modification} \\
 \midrule
@@ -771,7 +778,7 @@ $V = /i/$ (COEFCEN $= 1$) and the perception shifts from
 \subsection{Simulation scripts}
 
 \begin{center}
-\begin{tabular}{ll}
+\begin{tabular}{@{}l p{0.52\textwidth}@{}}
 \toprule
 \textbf{Script} & \textbf{Purpose} \\
 \midrule
@@ -1180,7 +1187,7 @@ $+0.30$ over /a/, whose Body level $+1.00$ already sits near the /u/
 direction).
 
 An interactive HTML simulation illustrating this effect accompanies
-this section in the \texttt{simulations/} directory.
+this section (directory \texttt{simulations/}).
 
 \begin{figure}[h]
 \centering

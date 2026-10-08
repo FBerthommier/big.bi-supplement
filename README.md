@@ -14,6 +14,54 @@ This repository provides the code, scripts, and didactic documentation to reprod
 3. The **U-shaped Tp variation** for perceptual demonstration
 4. The **polar trajectory visualization** (two-branch reconstruction)
 
+## Explore the results (clickable)
+
+The repository tree is deep — start here. All paths are relative
+links that work directly on GitHub.
+
+**📖 Full documentation**
+
+- **[Didactic manual (PDF)](docs/manual.pdf)** — model, reproduction
+  guide, all demonstrations, results and duration analysis
+  (source: [docs/manual.tex](docs/manual.tex)).
+
+**▶ Interactive demonstrations** (self-contained HTML: embedded dual
+video — sagittal tract | polar plot — with chapters, captions and
+transcript; just open the link, no server needed)
+
+- [big.bi → bi.gbi](simulations/bigbi_bi_gbi_embedded.html) — the
+  §4 verbal transformation, 14 segments, δ = 0.50 → 1.00 (≈ 24 s)
+- [ib ib → bi bi (reversible U-shape)](simulations/ibbi_ushape_embedded.html)
+  — Tp 160 → 0 → 160 ms, returns to ib ib (≈ 19 s)
+- [ib ib → bi bi (NON-REVERSIBLE U-shape)](simulations/ibbi_ushape_nonreversible_embedded.html)
+  — after fusion the content stays bi bi even with Tp restored (≈ 17 s)
+- [Trough effect](simulations/trough_effect.html) — Body excursion
+  toward /u/ during /b/, with per-VCV audio (ibi, aba, idi, igi)
+
+**🖼 Key figures** (article-format reproductions)
+
+- [Figure 1 — /ibia/ four-step synthesis](docs/figures/article_format/figure1_ibia_4panel.png)
+  (planning, articulatory parameters, formants, spectrogram)
+- [Figure 3 — locus equations](docs/figures/article_format/figure3_locus_equations.png)
+  · [combined view](docs/figures/article_format/figure3_locus_combined.png)
+- [Figure 4 — big.bi | bi.gbi](docs/figures/article_format/figure4_bigbi_bigbi.png)
+- [Supplement — /ib/ → /bi/](docs/figures/article_format/supplement_ib_bi.png)
+- [Trough effect — Body excursion](docs/figures/demo4/trough_effect.png)
+  · [overlay](docs/figures/demo4/trough_effect_overlay.png) ·
+  [polar explanation](docs/figures/demo4/trough_effect_polar_explanation.png)
+- [Polar sweep, 12 segments](docs/figures/comparison_polar.png)
+
+**🔢 Headline measured results** (details and protocols in the manual)
+
+| Result | Value |
+|---|---|
+| Fusion gain big.bi → bi.gbi | **1T = 160 ms** (176 → 160 steps) |
+| Locus slopes (/b/, /d/, /g/ velar, /g/ palatal) | 0.703 · 0.421 · 2.335 · 0.630 (article ≈ 0.70 · 0.55 · 2.0 · 0.75) |
+| Trough effect (/ibi/, Body) | plateau −2.25 → **peak +1.25 at 630 ms** (excursion +3.50) |
+| /ib/ supplement | 112 steps = 1120 ms, no held @ (one closure) |
+| F0 across all sweeps | ≈ 119–124 Hz (constant), no clipping |
+| valrect (documented difference) | 1.10 everywhere (article: 0.75) |
+
 ## Quick Start
 
 Requires **Python ≥ 3.10**.
