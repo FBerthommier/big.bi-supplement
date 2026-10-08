@@ -67,10 +67,28 @@ All numbers below come from `scripts/run_trough_ablations.py`
 - PATCHED: `simulations/trough_effect.html` — aba claim corrected ("most pronounced for (ibi, aba)" → strong for /ibi/, weak for /aba/ +0.30), section title "(trough visible)" → "(Body excursion visible)", shading wording (recorded cluster block), A8 limitation paragraph ("qualitatively consistent with", "relatively small", movement-data-only), 3 figure blobs swapped to the regenerated PNGs.
 - REBUILT: `docs/manual.pdf` — 26 pages, 0 unresolved references.
 
-## 5. Points requiring the author's decision (not decided here)
+## 5. Author rulings on the decision points (2026-10-08, second pass)
 
-1. **ρb for the article-format Figure 1**: keep the registry default ρb = 1.2 (Body peak +1.50, current figures) or force the article position ρb = 1.0 (+1.25, homogeneous with the trough demo)?
-2. **valrect = 1.10 vs article 0.75**: kept at 1.10 (2026-10-07 ruling); the manual now flags the deviation where it influences a number (slopes, F2 minima).
-3. **/ib/→/bi/ 3-case supplement figure**: dropped with `original_simulations/`; should a fresh 3-case figure (current engine, dot-form semantics) be regenerated as an article-format panel?
-4. **Locus /d/ (0.421 vs ≈0.55) and palatal /g/ (0.630 vs ≈0.75)**: presented as quantitative deviations with preserved ordering; investigating the synthSYL vowel-table drift (already documented for F2v compression) is optional further work.
-5. **Tip c0 = −2.75 (vs article −3.0)**: not re-audited in this pass (no trough-section impact detected); flag for a future constants audit.
+1. **ρb for the article-format Figure 1** → **KEEP the registry default
+   ρb = 1.2** (homogeneity with Figure 1's Body peak +1.50). The
+   article value is CONFIRMED in the arXiv source, §3 verbatim:
+   "we found that /b/ is easy to reach with (ρb = 1, θb = π/3)"; the
+   manual now quotes it and documents the 1.2-vs-1.0 deviation.
+2. **valrect** → **1.10 confirmed**; deviations flagged where they
+   influence a number (Demo 2 slope table; Demo 3 formant note added —
+   Body values are Pval-level and valrect-independent).
+3. **/ib/→/bi/ supplement figure** → **REGENERATED at the current
+   engine** (`scripts/make_supplement_ib_bi.py` →
+   `docs/figures/article_format/supplement_ib_bi.png`): 3 cases
+   (/ib/ δ=0.5, /ib/ δ=1.0, /bi/ δ=1.0), gate verified — /ib/ = 112
+   steps = 1120 ms at BOTH deltas, cluster followed directly by the
+   decay (no held @, unlike the removed pre-revocation reproduction).
+   Referenced in manual §11.6 with a figure environment.
+4. **Slope deviations** → explained in the manual (Demo 2, "Why the
+   slopes deviate from the article"): a locus slope is a ratio against
+   the F2vowel spread; the article-era synthSYL vowel table (corner
+   vowels at ρ=1) was revised, compressing the F2vowel axis
+   (/i/ 2290 vs ≈2660 Hz, /u/ 1029 vs ≈880 Hz), and the line with the
+   highest intercept (/d/) moves the most. Coordinate-table
+   difference, not a change in coarticulation behaviour.
+5. **Tip c0 = −2.75** → left as-is (author ruling: "à laisser passer").

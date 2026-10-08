@@ -988,12 +988,22 @@ differences between the VLAM and the human vocal tract.''} The velar
 points here indeed fall on or below the $y = x$ diagonal
 (/g/+u: $1029 \to 966$~Hz).
 
-The F2$_{\text{vowel}}$ axis is slightly compressed relative to the
-article's figure (e.g.\ /i/: 2290~Hz here vs $\approx$2660~Hz, /u/:
-1029 vs $\approx$880): the article was produced with an earlier
-synthSYL vowel table (corner vowels at $\rho = 1$ per \S2.1), which
-has since been revised in \texttt{timit-to-Maeda}. This shifts the
-individual slopes slightly but preserves every trend.
+\textbf{Why the slopes deviate from the article.} A locus slope is a
+RATIO, $a = \Delta F2_{\text{locus}} / \Delta F2_{\text{vowel}}$
+across the 8 vowels, so it depends on the SPREAD of the
+$F2_{\text{vowel}}$ axis, not only on the consonant. The
+$F2_{\text{vowel}}$ axis here is compressed relative to the article's
+figure (e.g.\ /i/: 2290~Hz here vs $\approx$2660~Hz, /u/: 1029 vs
+$\approx$880): the article was produced with an earlier synthSYL
+vowel table (corner vowels at $\rho = 1$ per \S2.1), which has since
+been revised in \texttt{timit-to-Maeda}. A slope is fitted as a ratio
+against this axis, so the compression changes every fitted value, and
+the line with the highest intercept is the most sensitive --- the
+/d/ line (intercept $\approx 1250$~Hz, the flattest of the three)
+moves the most (0.42 here vs $\approx$0.55 in the article), while the
+ordering and the linearity of the points are essentially unaffected.
+This is a coordinate-table difference, not a change in the
+coarticulation behaviour.
 
 \subsubsection{Root cause of the previous /b/--/d/ inversion}
 
@@ -1074,13 +1084,17 @@ movement-related data (X-ray, EMG, electropalatography) --- never
 acoustically.
 
 \textbf{The model.} In the present implementation, /b/ lies on the
-\textbf{same angular direction as /u/} in the complex plane, with
-$\theta_b = \pi/3$ (verified in the code constants: the vowel table
-of \texttt{synthSYL/phonology.py} places /u/ at
-$(\rho_u = 1.0,\ \theta_u = \pi/3)$; the article position of /b/ is
-$(\rho_b = 1.0,\ \theta_b = \pi/3)$ ), so the two targets
-coincide exactly at $\rho_b = \rho_u$; the synthSYL registry default
-$\rho_b = 1.2$ shares the same direction but a larger radius).
+\textbf{same angular direction as /u/} in the complex plane. The
+article value is confirmed in the arXiv source (\S3, verbatim):
+\textit{``we found that /b/ is easy to reach with
+$(\rho_b = 1,\ \theta_b = \pi/3)$''}. The code constants agree: the
+vowel table of \texttt{synthSYL/phonology.py} places /u/ at
+$(\rho_u = 1.0,\ \theta_u = \pi/3)$, so at the article position the
+two targets coincide exactly ($\rho_b = \rho_u$). The synthSYL
+registry default $\rho_b = 1.2$ shares the same direction but a
+larger radius; the article-format Figure~1 keeps this default
+(homogeneity decision of 2026-10-08), which is why its Body peak is
+$+1.50$ instead of $+1.25$ (see below).
 During the /b/ consonant the Body parameter rises from the vowel
 plateau toward the /u/-direction value --- a \textbf{peak}, not a
 dip, whatever the vowel context (verified by script; see the table below).
@@ -1118,12 +1132,15 @@ VCV & Plateau Body & Extremum during C & Instant & Amplitude \\
 \end{tabular}
 
 \smallskip
-The medial closure spans frames 61--64 and the release is at
-frame 65 (650 ms) for the T=16 words; the extremum always falls
-INSIDE the cluster block (e.g.\ 630 ms for /ibi/, whose cluster
-spans frames 48--79 = 480--790 ms). In /ibi/, F2 falls from the
-/i/ plateau $2276$~Hz to a V-minimum of $1630$~Hz at 630 ms and
-returns to $2276$~Hz.
+All Body values are Pval-level (planning/engine) quantities and are
+therefore valrect-independent; the formant values in this section are
+measured at \texttt{valrect} $= 1.10$ (author ruling 2026-10-07,
+\texttt{docs/VALRECT\_110.md}). The medial closure spans frames
+61--64 and the release is at frame 65 (650 ms) for the T=16 words;
+the extremum always falls INSIDE the cluster block (e.g.\ 630 ms for
+/ibi/, whose cluster spans frames 48--79 = 480--790 ms). In /ibi/,
+F2 falls from the /i/ plateau $2276$~Hz to a V-minimum of $1630$~Hz
+at 630 ms and returns to $2276$~Hz.
 \end{center}
 
 The old claim ``Body before /b/ $\approx 0$, trough at $-2.25$,
@@ -1322,10 +1339,26 @@ repository:
 
 The supplement transformation /ib/ $\to$ /bi/ (\S3: ``The classical
 transformation of /ib/ into /bi/ is given in the supplement.'') is
-illustrated by the U-shaped sweeps of Demonstration~2 and by the HTML
-simulations of \S12; the former three-case side-by-side stored figure
-(/ib/ $\delta=0.5$, /ib/ $\delta=1.0$, /bi/ $\delta=1.0$) belonged to
-the removed \texttt{original\_simulations/} set.
+REGENERATED at the current engine state
+(\texttt{scripts/make\_supplement\_ib\_bi.py} $\to$
+\texttt{docs/figures/article\_format/supplement\_ib\_bi.png}): the
+three cases /ib/ $\delta=0.5$ (schwa @ audible, /b/ in coda),
+/ib/ $\delta=1.0$ ($V_o = V_e = V$, fusion) and /bi/ $\delta=1.0$
+(/b/ in onset, the fused form), each as Maeda parameters + formants +
+spectrogram. Gate: /ib/ is 112 steps = 1120~ms at BOTH deltas, the
+/b/ cluster followed DIRECTLY by the decay (no held @ --- the revoked
+$V_e$ plateau is absent, unlike the removed pre-2026-10-07
+reproduction).
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/article_format/supplement_ib_bi.png}
+\caption{Supplement /ib/ $\to$ /bi/, current engine (no held @,
+valrect $= 1.10$): /ib/ $\delta=0.5$, /ib/ $\delta=1.0$,
+/bi/ $\delta=1.0$. Top: Maeda parameters (Body orange). Middle:
+formants. Bottom: spectrograms --- a single closure per word, no
+trailing schwa plateau.}
+\end{figure}
 
 % ════════════════════════════════════════════════════════════════
 % Section 12: Interactive HTML Simulations

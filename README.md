@@ -88,6 +88,7 @@ bigbi-demos/
 │   ├── run_locus_trough_demos.py     # Demos 2/3 (locus equations, trough effect)
 │   ├── run_trough_ablations.py       # Trough-effect ablations (Sc, rho_b, theta_b, b/d/g)
 │   ├── make_article_figures.py       # Article-format Figures 1/3/4 + planning panels
+│   ├── make_supplement_ib_bi.py      # Supplement /ib/ → /bi/ (current engine, no held @)
 │   ├── polar_sync.py                 # Engine-block-synchronized polar display (arcplot)
 │   ├── run_bigbi_polar_sweep.py      # big.bi → bi.gbi polar sweep
 │   ├── run_ibbi_ushape_sweep.py      # U-shaped Tp variation (reversible)
