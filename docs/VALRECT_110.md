@@ -48,6 +48,14 @@ the manual's Demo-2 table now carries the 1.10 values.
 
 ## Reference re-baseline (`original_simulations/`)
 
+> **NOTE (2026-10-08):** the `original_simulations/` directory and
+> `scripts/run_original_simulations.py` have since been **removed**:
+> the reproductions were discordant with the current engine (e.g. /ib/
+> was still realized as "ibe" with the revoked $V_e$ plateau) and the
+> article-format figures in `docs/figures/article_format/` (produced by
+> `scripts/make_article_figures.py`) supersede them. The re-baseline
+> record below is kept for history.
+
 `valrect` feeds the synthesizer only: the planning/engine arrays do
 not depend on it. Verified by regenerating Figure 1 (/ibia/, T=100 ms)
 at 1.10 and comparing against the previous (0.75) reference

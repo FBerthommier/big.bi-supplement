@@ -26,7 +26,7 @@ pip install -r requirements.txt
 # for audio dubbing / concatenation)
 pip install -r requirements.txt -r requirements-vlam.txt
 
-# Reproduce the article figures (Demo 1 /ibia/, Demo 3 S-shaped F2,
+# Reproduce the article figures (Demo 1 /ibia/,
 # Demo 5 consonant clusters)  -> output/article_demos/
 python scripts/run_article_demos.py
 
@@ -34,12 +34,13 @@ python scripts/run_article_demos.py
 # -> docs/figures/demo2/, docs/figures/demo4/
 python scripts/run_locus_trough_demos.py
 
+# Trough-effect ablations (Body in Sc, rho_b, theta_b, b/d/g)
+# -> output/trough_ablations/
+python scripts/run_trough_ablations.py
+
 # Article-format figures (Figs 1/3/4 in the article's own layout)
 # -> docs/figures/article_format/ + refreshed planning panels
 python scripts/make_article_figures.py
-
-# Exact article reproductions (original_simulations/ references)
-python scripts/run_original_simulations.py
 
 # Main sweep: big.bi -> bi.gbi with polar coords (14 segments)
 python scripts/run_bigbi_polar_sweep.py
@@ -76,16 +77,16 @@ bigbi-demos/
 ├── synthSYL/                  # Modified synthSYL package (with delta_o, delta_e, COEFCEN syllable chaining)
 │   ├── constants.py            # COEFCEN, DEFAULT_K=10, DEFAULT_KVOY=30, DEFAULT_DELTA_O/E
 │   ├── gesture.py              # Vo/Ve anchor construction with delta_o, delta_e
-│   ├── trajectory.py           # Ve plateau fix (full-amplitude before decay)
+│   ├── trajectory.py           # decay chains directly on the word-end anchor (no held @; the old Ve-plateau addition was revoked)
 │   ├── pipeline.py             # panphon_pipeline() with delta_o, delta_e kwargs
 │   └── ...                     # Other modules from timit-to-Maeda
 ├── vlam.py                    # VLAM (Maeda) articulatory synthesizer
 ├── VLAMvidmaker.py            # Video generation from Maeda parameters
 ├── batch_synthesize.py        # Batch WAV synthesis
 ├── scripts/                   # Simulation scripts (US English)
-│   ├── run_article_demos.py          # Demos 1/3/5 (ibia, S-shaped F2, clusters)
-│   ├── run_locus_trough_demos.py     # Demos 2/4 (locus equations, trough effect)
-│   ├── run_original_simulations.py   # Exact article reproductions + reference check
+│   ├── run_article_demos.py          # Demos 1/5 (ibia, clusters)
+│   ├── run_locus_trough_demos.py     # Demos 2/3 (locus equations, trough effect)
+│   ├── run_trough_ablations.py       # Trough-effect ablations (Sc, rho_b, theta_b, b/d/g)
 │   ├── make_article_figures.py       # Article-format Figures 1/3/4 + planning panels
 │   ├── polar_sync.py                 # Engine-block-synchronized polar display (arcplot)
 │   ├── run_bigbi_polar_sweep.py      # big.bi → bi.gbi polar sweep
@@ -100,10 +101,6 @@ bigbi-demos/
 │   ├── ibbi_ushape_nonreversible_embedded.html # NON-REVERSIBLE ib ib → bi bi → bi bi
 │   ├── ibbi_ushape_embedded.html            # Reversible U-shape ib ib → bi bi → ib ib
 │   └── trough_effect.html                   # Trough effect explainer (audio + figures)
-├── original_simulations/      # Exact article reproductions (original parameters)
-│   ├── figure1_ibia/          # /ibia/ with T=100ms (Figure 1, 4-panel + WAV + npz)
-│   ├── figure4_bigbi_bigbi/   # big.bi (δ=1) + bi.gbi (Figure 4; compare with arXiv:2307.02299 Fig. 4)
-│   └── supplement_ib_bi/      # /ib/ → /bi/ classical transformation (supplement)
 ├── docs/                      # Didactic documentation
 │   ├── manual.tex             # LaTeX source (US English)
 │   ├── manual.pdf             # Compiled PDF (26 pages)

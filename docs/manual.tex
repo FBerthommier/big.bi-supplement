@@ -322,6 +322,7 @@ When $\delta_o = \delta_e \to 1$, both $V_o$ and $V_e$ approach $V$
 
 The final parameter frame is a blend (article Eq.~4):
 \begin{equation}
+\tag{art.\,4}
 P(t) - \Omega = \text{Re}\left[ S_v \cdot \Psi \cdot \bar{z}_v(t)
                               + S_c \cdot \Psi \cdot \bar{z}_c(t) \right]
 \end{equation}
@@ -699,8 +700,9 @@ Every simulation writes its segments as SEPARATE WAV files, so the
 \item \texttt{output/ibbi\_ushape\_nonrev\_en/wav/} --- non-reversible;
 \item \texttt{output/bigbi\_polar\_sweep/wav/synth\_dXXX.wav} ---
   big.bi $\to$ bi.gbi sweep;
-\item \texttt{original\_simulations/*/} and
-  \texttt{output/article\_demos/} --- article reproductions.
+\item \texttt{output/article\_demos/} and
+  \texttt{output/trough\_ablations/} --- article reproductions and
+  trough-effect measurements.
 \end{itemize}
 
 Measured on the current 10-segment sweeps (autocorrelation F0 on the
@@ -761,8 +763,10 @@ $V = /i/$ (COEFCEN $= 1$) and the perception shifts from
   & \texttt{\_insert\_syllable\_onset\_anchors()} \\
   & Fixed $V_o = (\delta_o \cdot \rho_V, \theta_V)$
   (was $[\delta_o, \theta_V]$) \\
-\texttt{synthSYL/trajectory.py} & Added $V_e$ plateau (full-amplitude)
-  before decay block \\
+\texttt{synthSYL/trajectory.py} & REVOKED addition: the $V_e$ plateau
+  (full-amplitude before decay) was added in an earlier revision and
+  removed on 2026-10-07 --- the decay now chains directly on the
+  word-end anchor (no held @), as in the reference package \\
 \texttt{synthSYL/pipeline.py} & Added $\delta_o$, $\delta_e$ kwargs
   to \texttt{panphon\_pipeline()} \\
 \bottomrule
@@ -835,8 +839,10 @@ print(f"Signal: {sig.shape[0]} samples ({sig.shape[0]/20000*1000:.0f} ms)")
 % ════════════════════════════════════════════════════════════════
 \section{Article Demonstrations}
 
-This section documents three additional demonstrations from the article
-that have been implemented in this repository.
+This section documents four additional demonstrations from the article
+that have been implemented in this repository: Demo~1 (/ibia/),
+Demo~2 (locus equations), Demo~3 (trough effect) and Demo~4
+(consonant clusters).
 
 \subsection{Demo 1: /ibia/ VCV synthesis (Figure 1)}
 
@@ -852,16 +858,22 @@ are:
   target.
 
 \item \textbf{(b) Flow of articulatory parameters} --- the 7 Maeda
-  parameters over time. The \textit{trough effect} is visible: the
-  Body parameter (tongue body) makes an unexpected front/back movement
-  during /b/, because /b/ lies on the same angular direction as /u/ in
-  the complex plane (and coincides with it at the article position
-  $\rho_b = 1$; see Demo~4).
+  parameters over time. The \textit{Body} parameter makes an
+  unexpected front/back movement during /b/, rising toward the /u/
+  direction, because /b/ lies on the same angular direction as /u/ in
+  the complex plane (see Demo~3). With the synthSYL registry default
+  $\rho_b = 1.2$ used by this figure, the Body peaks at $+1.50$
+  (measured) above the /i/ plateau $-2.25$; the article position
+  $\rho_b = 1.0$ gives $+1.25$.
 
-\item \textbf{(c) Formant trajectory} F1-F2-F3. The F2 shows an
-  S-shaped pattern: it starts at the /i/ value ($\approx 1830$~Hz),
-  dips during /b/ ($\approx 1564$~Hz, the /b/ locus), then rises back
-  to /i/ before transitioning to /a/.
+\item \textbf{(c) Formant trajectory} F1-F2-F3. F2 rises from its
+  initial (neutral-onset) value ($\approx 1830$~Hz, measured
+  $1826$~Hz at frame~0) to the /i/ plateau ($\approx 2280$~Hz,
+  measured $2276$~Hz), dips during /b/ in a V-shaped valley (minimum
+  $1570$~Hz at $\rho_b = 1.2$, mid-closure), rises back to the /i/
+  level, then falls toward /a/. This is a V-shaped perturbation, not
+  an S-shape: the F2 pattern through the consonant is a single
+  minimum between two vowel plateaus.
 
 \item \textbf{(d) Output spectrogram + wave} showing the acoustic
   result (waveform superposed on the grayscale spectrogram).
@@ -874,10 +886,11 @@ are:
 four-step synthesis of /ibia/ with $T=100$ms ($T_{\text{base}}=10$,
 K=10, Kvoy=30, Pexp=1). (a) Polar planning trajectories ($z_v$ red,
 $z_c$ blue — original arcplot anchoring, teardrop $z_c$). (b) The 7
-Maeda parameters with phoneme ticks /i/ /b/ /i/ /a/ (trough effect
-visible on Body). (c) Formant trajectory (S-shaped F2). (d)
-Spectrogram + wave. Compare with the article's Figure~1 (side-by-side
-sheet: \texttt{P:$\backslash$bigbi-workspace$\backslash$sheet\_fig1.jpg},
+Maeda parameters with phoneme ticks /i/ /b/ /i/ /a/ (Body excursion
+toward /u/ during /b/). (c) Formant trajectory (V-shaped F2 dip during
+/b/). (d) Spectrogram + wave. Compare with the article's Figure~1
+(side-by-side sheet:
+\texttt{P:$\backslash$bigbi-workspace$\backslash$sheet\_fig1.jpg},
 kept outside the repository).}
 \end{figure}
 
@@ -929,7 +942,9 @@ line.}
 \caption{Figure 3 (combined), article format: locus equations for all
 three consonants. The dotted line ($y = x$) represents no
 coarticulation. Slopes $< 1$ indicate coarticulation (the consonant
-locus is influenced by the vowel context).}
+locus is influenced by the vowel context); the velar /g/ slope
+$> 1$ reflects the opposite regime (locus extension toward the back
+vowels), as in the article.}
 \end{figure}
 
 \textbf{Results (corrected protocol):}
@@ -949,19 +964,24 @@ Consonant & Slope ($a$) & Intercept ($b$) & $r^2$ & Article Fig.~3 ($a$) \\
 \smallskip
 Measured at \texttt{valrect} $= 1.10$ (author ruling 2026-10-07; at
 the historical 0.75 the slopes were 0.704 / 0.412 / 0.644 / 2.107).
+The velar $r^2 = 1.000$ is computed on only 3 points (the back vowels
+o, O, u) and is therefore barely informative.
 \end{center}
 
 The article-figure slopes in the last column were measured by pixel
 extraction from the arXiv source figure (marker centroids calibrated
 on the axis ticks). The /b/ slope matches the article value
 ($\approx$0.70), and the /g/ split (steep velar, shallow palatal) is
-reproduced. The /d/ locus at back vowels (1690--1782~Hz) sits in the
-canonical alveolar range ($\approx$1700--1800~Hz), and the slope
-ordering
-$a(/d/) < a(/b/) < 1$ now agrees with both the article's Figure~3 and
-the classical locus-equation literature, where slopes descend from
-labial to velar to alveolar and the alveolar line is the flattest with
-the highest intercept~\cite{sussman1991,iskarous2010}. The article notes:
+qualitatively reproduced. The remaining slopes deviate quantitatively
+from the article: /d/ is flatter here (0.42 vs $\approx$0.55), the
+palatal /g/ shallower (0.63 vs $\approx$0.75) and the velar /g/
+steeper (2.34 vs $\approx$2.0). What is preserved is the ordering and
+the classical pattern: $a(/d/) < a(/b/) < 1$, the /d/ locus at back
+vowels (1690--1782~Hz) in the canonical alveolar range
+($\approx$1700--1800~Hz), and the slope ordering of the
+locus-equation literature, where slopes descend from labial to velar
+to alveolar and the alveolar line is the flattest with the highest
+intercept~\cite{sussman1991,iskarous2010}. The article notes:
 \textit{``This is similar to the classical observation but with a
 downward shift of the velar /g/ which could be due to geometric
 differences between the VLAM and the human vocal tract.''} The velar
@@ -1022,10 +1042,9 @@ grouping of /a/, and \texttt{config.py} (new constant
 \texttt{LOCUS\_OFFSET\_STEPS}) changed.
 
 \textbf{Note:} For a detailed comparison with Ohman's spectrographic
-data and the S-shaped F2 trajectory analysis, see the 2025 companion
-article (arXiv:2505.22455).
+data, see the 2025 companion article (arXiv:2505.22455).
 
-\subsection{Demo 4: Trough effect (Figure 1b)}
+\subsection{Demo 3: Trough effect (Figure 1b)}
 
 The article (\S3) describes an unexpected articulatory phenomenon
 during /b/:
@@ -1040,43 +1059,132 @@ during /b/:
 Burlingame, \emph{Phonetica} 59:245--262, 2002)
 \end{quote}
 
-In the present model, /b/ lies on the \textbf{same angular direction
-as /u/} in the complex plane, with $\theta_b = \pi/3$. This is
-verified in the code constants: the vowel table of
-\texttt{synthSYL/phonology.py} places /u/ at
-$(\rho_u = 1.0,\ \theta_u = \pi/3)$, and the article position of /b/
-used by the demos is $(\rho_b = 1.0,\ \theta_b = \pi/3)$ --- with
-$\rho_b = \rho_u$ the two targets coincide exactly; the synthSYL
-registry default $\rho_b = 1.2$ shares the same direction but a larger
-radius. During the /b/ consonant:
+\textbf{The source.} Lindblom et al.\ [29] trace the effect to
+Perkell [1986, p.~48], who described it as an
+``apparent discontinuity in anticipatory coarticulation'': in VCV
+utterances with identical vowels around a labial stop (e.g.\
+[ibi]), the muscle activity maintaining the tongue configuration for
+V1 is diminished (``turned off'') into the stop closure, the tongue
+dorsum lowers, and returns to the same vowel target as V2
+approaches (their Introduction).
+Two properties of the source matter for the comparison below:
+the reported movement deviations are ``relatively small'' and highly
+variable, and the effect has been documented \emph{only} from
+movement-related data (X-ray, EMG, electropalatography) --- never
+acoustically.
 
-\begin{itemize}
-\item the consonantal branch $z_c$ moves toward the /b/ target, which
-lies on the /u/ direction;
-\item the selection vector $S_c = \{1,2,6\}$ (article's 1-based
-numbering; code indices $\{0,1,5\}$) activates the Jaw, Body and
-LipH parameters --- in particular the Body parameter (index 1 in the
-0-based code indexing);
-\item the vowel articulators selected by
-$S_v = \{3,4,5,7\}$ (code indices $\{2,3,4,6\}$: Dorsum, Tip, LipP,
-Hy) remain associated with the /i/ configuration;
-\item consequently, the Body parameter exhibits an unexpected
-front/back excursion during the /b/ interval, producing the
-characteristic dip in the simulated trajectory.
-\end{itemize}
+\textbf{The model.} In the present implementation, /b/ lies on the
+\textbf{same angular direction as /u/} in the complex plane, with
+$\theta_b = \pi/3$ (verified in the code constants: the vowel table
+of \texttt{synthSYL/phonology.py} places /u/ at
+$(\rho_u = 1.0,\ \theta_u = \pi/3)$; the article position of /b/ is
+$(\rho_b = 1.0,\ \theta_b = \pi/3)$ ), so the two targets
+coincide exactly at $\rho_b = \rho_u$; the synthSYL registry default
+$\rho_b = 1.2$ shares the same direction but a larger radius).
+During the /b/ consonant the Body parameter rises from the vowel
+plateau toward the /u/-direction value --- a \textbf{peak}, not a
+dip, whatever the vowel context (verified by script; see the table below).
 
-This articulatory excursion corresponds to the \textbf{trough effect}
-reported in Lindblom et al.\ [29]. In the present implementation, the
-effect arises from the interaction between the consonantal trajectory
-$z_c(t)$ and the parameter-selection mechanism: although /b/ is a
-bilabial consonant, its target lies in the same angular direction as
-/u/, and the Body parameter is included in the consonantal selection
-vector.
+\textbf{How Body is actually computed (resolves the $S_v$/$S_c$
+partition).} The selection vectors are \emph{not} a partition of the
+7 parameters into vowel-driven and consonant-driven subsets. Body
+belongs to BOTH $S_v$-related (all 7 parameters are written by the
+vowel anchor at plateaus) and $S_c = \{1,2,6\}$ (code $\{0,1,5\}$).
+What happens is a \emph{sequential overwrite}
+(see \texttt{synthSYL/trajectory.py}, \texttt{inject\_active\_parameters()}, lines 156--167):
+vowel plateaus write all 7 parameters from $z_v$ (giving the /i/
+plateau value Body $= -2.25$), then the cluster block overwrites the
+$S_c$ parameters from the consonantal arc $z_c$ (giving the /u/-
+direction value Body $= +1.25$ at $\rho_b = 1.0$). The ``vowel
+articulators stay around /i/'' of the article holds because the
+NON-overwritten parameters (Dorsum, Tip, LipP, Hy, i.e.\
+$S_v = \{3,4,5,7\}$ article numbering / code $\{2,3,4,6\}$) keep
+their $z_v$ values through the cluster.
 
-Thus, the simulation reproduces the tongue-body movement identified in
-the article as the trough effect. The geometric explanation given here
-is specific to the present model and should not be interpreted as the
-physiological explanation proposed by Lindblom et al.\ [29].
+\textbf{Measured values} from the recorded engine blocks; article positions $\rho_b = 1.0$; T = 16; the full table is
+reproduced by \texttt{scripts/run\_trough\_ablations.py}]:
+
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+VCV & Plateau Body & Extremum during C & Instant & Amplitude \\
+\midrule
+/ibi/ & $-2.250$ & $+1.250$ (max) & 630 ms & $+3.500$ \\
+/aba/ & $+1.000$ & $+1.298$ (max) & 590 ms & $+0.298$ \\
+/idi/ & $-2.250$ & $-2.228$ (max) & 580 ms & $+0.022$ \\
+/igi/ & $-2.250$ & $-1.945$ (max) & 630 ms & $+0.305$ \\
+/ibia/ (T=10) & $-2.250$ & $+1.250$ (max) & 390 ms & $+3.500$ \\
+\bottomrule
+\end{tabular}
+
+\smallskip
+The medial closure spans frames 61--64 and the release is at
+frame 65 (650 ms) for the T=16 words; the extremum always falls
+INSIDE the cluster block (e.g.\ 630 ms for /ibi/, whose cluster
+spans frames 48--79 = 480--790 ms). In /ibi/, F2 falls from the
+/i/ plateau $2276$~Hz to a V-minimum of $1630$~Hz at 630 ms and
+returns to $2276$~Hz.
+\end{center}
+
+The old claim ``Body before /b/ $\approx 0$, trough at $-2.25$,
+$t = 160$~ms'' was a measurement artifact: an \texttt{argmin} over
+frames $T..3T$ mistook the /i/ PLATEAU (Body $= -2.25$) for the
+effect. The excursion is a \textbf{rise toward $+1.25$} peaking at
+$\approx 630$~ms (T=16) or $\approx 390$~ms (T=10).
+
+\textbf{Why $+1.25$ here and $+1.50$ in Figures 1/10--12.} The
+amplitude depends on $\rho_b$: the registry default $\rho_b = 1.2$
+(used by the article-format Figure~1 and the planning panels) gives
+Body $= +1.500$, while the article position $\rho_b = 1.0$ (set
+explicitly by \texttt{run\_locus\_trough\_demos.py}) gives
+$+1.250$ (both measured). The plateau value $-2.25$ is
+identical in both configurations.
+
+\textbf{Ablations} (\texttt{scripts/run\_trough\_ablations.py}, /ibi/, T=16):
+
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+Configuration & Body excursion & F2 minimum & F2 dip \\
+\midrule
+baseline ($S_c = \{0,1,5\}$, $\rho_b=1$, $\theta_b=\pi/3$) & $+3.500$ & 1630 Hz & yes \\
+(i) Body removed from $S_c$ ($\{0,5\}$) & $+0.003$ & 2273 Hz & no \\
+(ii) $\rho_b = 0.5$ & $+2.875$ & 1773 Hz & yes \\
+(ii) $\rho_b = 1.0$ & $+3.500$ & 1630 Hz & yes \\
+(ii) $\rho_b = 1.2$ & $+3.750$ & 1570 Hz & yes \\
+(iii) $\theta_b = \pi$ & $+3.500$ & 1582 Hz & yes \\
+(iii) $\theta_b = 3\pi/2$ & $+0.086$ & 2241 Hz & no \\
+(iv) /d/ (idi) & $+0.022$ & 2130 Hz & small \\
+(iv) /g/ palatal (igi) & $+0.305$ & 2269 Hz & no \\
+\bottomrule
+\end{tabular}
+
+\smallskip
+What these measurements show and nothing more: the excursion exists
+because Body belongs to the /b/ selection vector (i); its amplitude
+scales with $\rho_b$ (ii); with $\theta_b$ far from the /u/ AND /i/
+directions ($3\pi/2$) the excursion vanishes, while at
+$\theta_b = \pi$ the Body amplitude is unchanged (the Body value
+responds mostly to $\rho$, the FORMANTS to $\theta$ --- the F2
+minimum differs between $\theta_b = \pi$ and $\pi/3$); and among
+/b d g/ only /b/ (and weakly /g/) produces it (iv).
+\end{center}
+
+\textbf{Relation to the source.} The simulated Body excursion is
+\emph{qualitatively consistent with} the trough effect --- an
+unexpected tongue-body movement during the labial stop, in the /u/
+(backing/lowering) direction) --- a model interpretation. It is NOT a
+confirmation of it: (a) the direction is a consequence of the
+$\theta_b = \theta_u$ model placement, which is itself a modeling
+choice; (b) the simulated amplitude ($+3.50$ parameter units over
+/i/) is an order of magnitude larger than the ``relatively small''
+deviations reported in the articulographic literature, and is an
+architectural consequence of Body $\in S_c$, to be discussed if a
+quantitative comparison is ever established; (c) the trough of
+Lindblom et al.\ is a DORSUM LOWERING over /i/---/i/, whereas the
+sign of the simulated excursion follows the context (a weak bump
+$+0.30$ over /a/, whose Body level $+1.00$ already sits near the /u/
+direction).
 
 An interactive HTML simulation illustrating this effect accompanies
 this section in the \texttt{simulations/} directory.
@@ -1085,17 +1193,21 @@ this section in the \texttt{simulations/} directory.
 \centering
 \includegraphics[width=\textwidth]{figures/demo4/trough_effect.png}
 \caption{Trough effect: Body parameter variation during /b/, /d/, /g/
-in VCV sequences. The Body (orange, thick line) shows a dip during
-the consonant for /b/ (ibi, aba), corresponding to the trough effect.
-The consonant region is shaded in orange.}
+in VCV sequences. The Body (orange, thick line) shows a PEAK during
+the consonant for /ibi/ (rise from the /i/ level $-2.25$ toward the
+/u/-direction value $+1.25$); the excursion over /aba/ is weak
+($+0.30$). The shaded region is the recorded engine cluster block
+(frames 480--790 ms at T=16).}
 \end{figure}
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.8\textwidth]{figures/demo4/trough_effect_overlay.png}
 \caption{Body parameter overlay for /ibi/, /aba/, /idi/, /igi/. The
-trough (dip) is most pronounced for /b/ (ibi, aba) because the /b/
-target lies on the same angular direction as /u/.}
+excursion is strong for /ibi/ ($+3.50$ from the /i/ plateau) and weak
+for /aba/ ($+0.30$ from the /a/ plateau, whose Body level $+1.00$
+already sits near the /u/ direction); /idi/ and /igi/ are nearly
+flat. The /b/ target lies on the same angular direction as /u/.}
 \end{figure}
 
 \begin{figure}[h]
@@ -1104,22 +1216,12 @@ target lies on the same angular direction as /u/.}
 \caption{Polar explanation: /b/ (orange square) lies on the same
 angular direction as /u/ (orange circle) in the complex plane --- with
 the article position $\rho_b = 1$ the two targets coincide. During
-/b/, the Body parameter follows $z_c(t)$ toward /u/, creating the
-trough effect while the vowel articulators stay around /i/.}
+/b/, the Body parameter follows $z_c(t)$ toward /u/, producing the
+excursion while the non-overwritten vowel articulators stay around
+/i/.}
 \end{figure}
 
-\textbf{Measured trough depth} (for /ibi/, T=16):
-\begin{itemize}
-\item Body before /b/: $\approx 0.0$ (neutral, at /i/)
-\item Body at trough: $-2.25$ (at $t = 160$~ms, during /b/)
-\item Body after /b/: $\approx 0.0$ (back to /i/)
-\item Trough depth: $2.25$ (significant dip)
-\end{itemize}
-
-This confirms the trough effect described in the article and in
-Lindblom et al. [29].
-
-\subsection{Demo 5: Six consonant cluster pairs}
+\subsection{Demo 4: Six consonant cluster pairs}
 
 The article (\S3) describes the tuning of the six pairs of
 /b,d,g/:
@@ -1167,34 +1269,17 @@ branch $z_c$ (blue) visits both consonant targets in sequence.}
 \end{figure}
 
 % ════════════════════════════════════════════════════════════════
-% Section 11.6: Original Article Simulations
+% Section 11.6: Figure 4 (article format)
 % ════════════════════════════════════════════════════════════════
-\subsection{Original article simulations (exact reproduction)}
+\subsection{Figure 4: big.bi $|$ bi.gbi (article format)}
 
-The \texttt{original\_simulations/} directory contains three
-simulations reproduced with the \textbf{exact article parameters}
-for direct comparison with the article's figures:
-
-\subsubsection{Figure 1: /ibia/ with T=100ms}
-
-\texttt{original\_simulations/figure1\_ibia/}
-
-Reproduces the article's Figure~1 using $T=10$ (100~ms per period),
-matching the article's ``$T = 100$ms''. The 4-panel figure shows:
-(a) planning trajectories, (b) articulatory parameters (trough
-effect), (c) formant trajectory (S-shaped F2), (d) spectrogram.
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=\textwidth]{../original_simulations/figure1_ibia/ibia_4panel_original.png}
-\caption{Figure 1 (original reproduction): four-step synthesis of
-/ibia/ with $T=100$ms ($T_{\text{base}}=10$).}
-\end{figure}
-
-\subsubsection{Figure 4: big.bi and bi.gbi}
-
-\texttt{original\_simulations/figure4\_bigbi\_bigbi/} (raw script
-output) and \texttt{docs/figures/article\_format/} (article format).
+(The former ``original simulations'' reproductions
+\texttt{original\_simulations/} were removed on 2026-10-08: they had
+been generated before the $V_e$-plateau revocation and the dot-form
+ruling and were discordant with the current engine --- e.g.\ /ib/ was
+still realized as ``ibe''. The article-format figures in
+\texttt{docs/figures/article\_format/}, produced by
+\texttt{scripts/make\_article\_figures.py}, supersede them.)
 
 big.bi is rendered with the \textbf{dot form} (\texttt{big.bi}): per
 the reference \texttt{Timit-to-Maeda} semantics
@@ -1207,6 +1292,11 @@ left column thus shows three consonantal gestures (/b/; then /g/ and
 /b/ chained across the shared /i/) while the right column (bi.gbi,
 whose V.C dot is ignored) shows the fused /gb/ cluster --- the \S4
 syllabification demonstration.
+
+Note the two parameter conventions: this figure fixes the ARTICLE
+figure conditions $\delta_o = 0.5$ (VOYDEB), $\delta_e = 1$
+(COEFCEN), whereas the Demonstration~1 sweep varies a single
+$\delta = \delta_o = \delta_e$ (COEFCEN) from 0.5 to 1.
 
 \begin{figure}[h]
 \centering
@@ -1230,26 +1320,12 @@ repository:
 \texttt{P:$\backslash$bigbi-workspace$\backslash$sheet\_fig4.jpg}).}
 \end{figure}
 
-\subsubsection{Supplement: /ib/ $\to$ /bi/}
-
-\texttt{original\_simulations/supplement\_ib\_bi/}
-
-Reproduces the supplement mentioned in \S3: ``The classical
-transformation of /ib/ into /bi/ is given in the supplement.''
-Three cases are shown side by side:
-\begin{enumerate}
-\item /ib/ with $\delta=0.5$ (schwa @ audible, /b/ in coda)
-\item /ib/ with $\delta=1.0$ ($V_o = V_e = V$, fusion)
-\item /bi/ with $\delta=1.0$ (/b/ in onset, the fused form)
-\end{enumerate}
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=\textwidth]{../original_simulations/supplement_ib_bi/supplement_ib_bi_original.png}
-\caption{Supplement (original reproduction): /ib/ $\to$ /bi/
-classical transformation. Three columns: /ib/ $\delta=0.5$,
-/ib/ $\delta=1.0$, /bi/ $\delta=1.0$.}
-\end{figure}
+The supplement transformation /ib/ $\to$ /bi/ (\S3: ``The classical
+transformation of /ib/ into /bi/ is given in the supplement.'') is
+illustrated by the U-shaped sweeps of Demonstration~2 and by the HTML
+simulations of \S12; the former three-case side-by-side stored figure
+(/ib/ $\delta=0.5$, /ib/ $\delta=1.0$, /bi/ $\delta=1.0$) belonged to
+the removed \texttt{original\_simulations/} set.
 
 % ════════════════════════════════════════════════════════════════
 % Section 12: Interactive HTML Simulations
@@ -1283,15 +1359,17 @@ Features: dual-panel video (sagittal Maeda | polar plot with phoneme),
 ($\approx$ 4.4 MB)
 
 This simulation demonstrates the \textbf{non-reversible} verbal
-transformation with the \textbf{same U-shaped $T_p$ as the reversible
-demonstration}: ``ib ib'' (VC.VC, /b/ in coda) with $T_p$ decreasing
-160, 120, 80, 40, 10~ms ($\delta$ correlated at every point); at the
-fusion point ($T_p=0$, $\delta=1$) the input switches to ``bi bi''
-(CV.CV, /b/ in onset); then $T_p$ increases again 40, 80, 120,
-160~ms --- but the content STAYS ``bi bi'': the /b/ remains in onset
-position even with a fully restored pause, proving the transformation
-is permanent and non-reversible. Duration $\approx$ 16.9~s (10
-segments).
+transformation with a \textbf{U-shaped $T_p$ like the reversible
+demonstration} (but not with the identical values: the descent passes
+through $T_p = 10$~ms before the fusion point, whereas the reversible
+sweep jumps 40 $\to$ 0~ms): ``ib ib'' (VC.VC, /b/ in coda) with $T_p$
+decreasing 160, 120, 80, 40, 10~ms ($\delta$ correlated at every
+point); at the fusion point ($T_p=0$, $\delta=1$) the input switches
+to ``bi bi'' (CV.CV, /b/ in onset); then $T_p$ increases again 40, 80,
+120, 160~ms --- but the content STAYS ``bi bi'': the /b/ remains in
+onset position even with a fully restored pause, proving the
+transformation is permanent and non-reversible. Duration
+$\approx$ 16.9~s (10 segments; the reversible sweep is 18.6~s).
 
 Features: dual-panel video, 10 segments, WebVTT captions, indexed
 transcript, keyboard shortcuts.
@@ -1338,9 +1416,13 @@ contributions are:
   demonstration of the ib ib $\to$ bi bi transformation.
 \end{enumerate}
 
-The duration reduction observed ($3.06T \approx 490$~ms with $T=16$)
-matches the article's prediction of $3T$ (1$T$ from consonant
-clustering + 2$T$ from $V_o$/$V_e$ plateau absorption).
+The duration reduction observed in the dot form is $1T = 160$~ms
+(with $T=16$), from consonant clustering alone (\S7.1). The article's
+$3T$ figure ($1T$ from clustering $+$ $2T$ from $V_o$/$V_e$ plateau
+absorption) was measured in an earlier revision against the space
+form ``big bi'' and included the inter-word pause machinery, which is
+not part of the dot form; no $\approx 3T$ claim is made for the
+current implementation.
 
 The polar topology matches the article's Figure~4: at $\delta < 1$,
 the consonantal branch makes 2 separate excursions; at $\delta = 1$
