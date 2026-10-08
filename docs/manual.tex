@@ -462,6 +462,16 @@ extra pre-decay $V_e$ plateau. /ibia/ is unaffected (90 steps), while
 /ib/ is 112 steps = 1120~ms (arc + attack + plateau + cluster + decay
 + arc).
 
+Note on the visible timing: the decay block is itself a T-step
+stationary hold at the $V_e$ anchor with the amplitude envelope
+ramping down, and the terminal arc departs from $V_e$, so the
+trajectory is SEEN sitting at (or near) $V_e$ for $\approx 2T$
+(e.g.\ /ib/: arrival at 800~ms, envelope at zero by $\approx$910~ms,
+neutral reached at 1120~ms). This lengthening is EXAGGERATED relative
+to natural speech, but it is exactly what makes the $V_e$ anchoring
+and the schwa-to-vowel gradation visible and audible in the
+demonstrations.
+
 % ════════════════════════════════════════════════════════════════
 % Section 5: Reproduction Guide
 % ════════════════════════════════════════════════════════════════
@@ -1301,7 +1311,10 @@ three cases /ib/ $\delta=0.5$ (schwa @ audible, /b/ in coda),
 /ib/ $\delta=1.0$ ($V_o = V_e = V$, fusion) and /bi/ $\delta=1.0$
 (/b/ in onset, the fused form), each as Maeda parameters + formants +
 spectrogram. Gate: /ib/ is 112 steps = 1120~ms at BOTH deltas, the
-/b/ cluster followed DIRECTLY by the decay (no held @).
+/b/ cluster followed DIRECTLY by the decay (no held @). The decay is
+a T-step hold at $V_e$ with the envelope closing (plus the silent
+terminal arc), so the visible stay at $V_e$ ($\approx 2T$) is
+exaggerated --- deliberately, so that the anchoring is demonstrable.
 
 \begin{figure}[h]
 \centering
