@@ -21,6 +21,11 @@
       "identifier": "https://github.com/FBerthommier/big.bi-supplement",
       "relation": "isIdenticalTo",
       "scheme": "url"
+    },
+    {
+      "identifier": "10.5281/zenodo.23239483",
+      "relation": "isAlternateIdentifier",
+      "scheme": "doi"
     }
   ],
   "keywords": [

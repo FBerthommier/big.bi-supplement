@@ -2,6 +2,12 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![arXiv](https://img.shields.io/badge/arXiv-2307.02299-red.svg)](https://arxiv.org/abs/2307.02299)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23239483.svg)](https://doi.org/10.5281/zenodo.23239483)
+
+**Cite this repository as:** Frédéric Berthommier, *big.bi → bi.gbi:
+articulatory simulation of the verbal transformation*
+(VLAM/Maeda reproduction of arXiv:2307.02299),
+DOI [10.5281/zenodo.23239483](https://doi.org/10.5281/zenodo.23239483).
 
 A Python implementation of the articulatory speech synthesis model described in:
 
