@@ -248,7 +248,7 @@ def figure1():
     ax.set_xlabel("Time (ms)", fontsize=10)
     ax.set_ylabel("Parameter value", fontsize=10)
     ax.set_title("(b) Flow of articulatory parameters "
-                 "(trough effect on Body during /b/)", fontsize=11,
+                 "(Body excursion toward /u/ during /b/)", fontsize=11,
                  fontweight="bold")
     ax.legend(loc="upper right", ncol=7, fontsize=7, frameon=False)
     ax.grid(True, alpha=0.3)
@@ -258,7 +258,7 @@ def figure1():
     nf = formants.shape[0]
     tf = np.arange(nf) * T_STEP_MS
     ax.plot(tf, formants[:, 0], color="#2ca02c", lw=1.2, label="F1")
-    ax.plot(tf, formants[:, 1], color="#d62728", lw=1.8, label="F2 (S-shaped)")
+    ax.plot(tf, formants[:, 1], color="#d62728", lw=1.8, label="F2")
     ax.plot(tf, formants[:, 2], color="#1f77b4", lw=1.2, label="F3")
     ax.set_ylim(0, 4000)
     ax.set_xlim(0, tf[-1])

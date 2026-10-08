@@ -2,22 +2,23 @@
 # SPDX-License-Identifier: MIT
 # -*- coding: utf-8 -*-
 """
-run_article_demos.py — Three demonstrations from arXiv:2307.02299:
+run_article_demos.py — Demonstrations from arXiv:2307.02299:
 
 Demo 1 (Figure 1): /ibia/ VCV synthesis — 4-step pipeline
   (a) Planning trajectories zv(t) and zc(t)
-  (b) Flow of articulatory parameters (trough effect visible)
-  (c) Formant trajectory F1-F2-F3 (S-shaped F2)
+  (b) Flow of articulatory parameters (Body excursion toward /u/)
+  (c) Formant trajectory F1-F2-F3
   (d) Output spectrogram and wave plot
-
-Demo 3 (Figure 1c): S-shaped F2 trajectories in VCV sequences
-  - Synthesize VCV sequences: /ibi/, /aba/, /idi/, /ada/, /igi/, /aga/
-  - Extract and plot F2(t) showing the S-shaped pattern
 
 Demo 5 (§3): Six consonant cluster pairs /bd/, /bg/, /db/, /dg/, /gb/, /gd/
   - Synthesize CVCCV with each cluster
   - Show selection vectors and articulatory parameters
   - Polar trajectory for each cluster
+
+(The former Demo 3 "S-shaped F2 trajectories" was removed on
+2026-10-08: the F2 pattern through the consonant is a V-shaped dip
+(measured: F2 2276 -> 1630 -> 2276 Hz in /ibi/), not an S-shape —
+see docs/manual.tex, Demo 1 section.)
 
 Article parameters: T=16, K=10, Kvoy=30, Pexp=1, nu=-1
 All output in US English.
@@ -77,10 +78,9 @@ VALRECT = 1.10  # author ruling 2026-10-07 (reduces the fizz on /i/)
 
 OUT_BASE = REPO_ROOT / "output" / "article_demos"
 DEMO1_DIR = OUT_BASE / "demo1_ibia"
-DEMO3_DIR = OUT_BASE / "demo3_s_shaped_f2"
 DEMO5_DIR = OUT_BASE / "demo5_clusters"
 
-for d in (DEMO1_DIR, DEMO3_DIR, DEMO5_DIR):
+for d in (DEMO1_DIR, DEMO5_DIR):
     d.mkdir(parents=True, exist_ok=True)
 
 MAEDA_LABELS = ["Jaw", "Body", "Dorsum", "Tip", "LipP", "LipH", "Hy"]
@@ -96,18 +96,6 @@ CLUSTER_INFO = {
     "gb": {"Sc": "{1,2,3,6}", "note": "/b/ involved, /g/ palatal"},
     "gd": {"Sc": "{1,2,3,4}", "note": "no /b/ -> Sc={1,2,3,4}"},
 }
-
-# VCV sequences for S-shaped F2 demo
-VCV_SEQUENCES = [
-    ("ibi",  "/i/ -> /b/ -> /i/",  "same vowel context"),
-    ("aba",  "/a/ -> /b/ -> /a/",  "same vowel context"),
-    ("idi",  "/i/ -> /d/ -> /i/",  "same vowel context"),
-    ("ida",  "/i/ -> /d/ -> /a/",  "different vowels"),
-    ("igi",  "/i/ -> /g/ -> /i/",  "same vowel context"),
-    ("aga",  "/a/ -> /g/ -> /a/",  "same vowel context"),
-    ("ibi_a", "/i/ -> /b/ -> /i/ -> /a/", "VCVV (from article Figure 1)"),
-    ("abai", "/a/ -> /b/ -> /a/ -> /i/", "VCVV"),
-]
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -237,7 +225,7 @@ def run_demo1_ibia():
     ax = axes[1]
     P = result.Pval
     for i in range(7):
-        lw = 2.0 if i == 1 else 1.2  # Highlight Body (trough effect)
+        lw = 2.0 if i == 1 else 1.2  # Highlight Body (excursion toward /u/)
         alpha = 1.0 if i == 1 else 0.7
         ax.plot(t_ms, P[:, i], color=MAEDA_COLORS[i], linewidth=lw,
                 alpha=alpha, label=MAEDA_LABELS[i])
@@ -255,7 +243,7 @@ def run_demo1_ibia():
     ax.plot(t_formants, formants[:, 0], color="#2ca02c", linewidth=1.5,
             label="F1")
     ax.plot(t_formants, formants[:, 1], color="#d62728", linewidth=2.0,
-            label="F2 (S-shaped)")
+            label="F2")
     ax.plot(t_formants, formants[:, 2], color="#1f77b4", linewidth=1.5,
             label="F3")
     ax.set_ylabel("Frequency (Hz)")
@@ -290,102 +278,6 @@ def run_demo1_ibia():
     np.savez(DEMO1_DIR / "ibia_formants.npz",
              formants=formants, Pval=P, z_v=z_v, z_c=z_c,
              t_ms=t_ms, t_z_ms=t_ms_z, segments=result.segments)
-
-
-# ═══════════════════════════════════════════════════════════════════
-# DEMO 3: S-shaped F2 trajectories in VCV sequences
-# ═══════════════════════════════════════════════════════════════════
-def run_demo3_s_shaped_f2():
-    """Figure 1c: S-shaped F2 trajectories in VCV sequences."""
-    print("\n" + "=" * 72)
-    print("DEMO 3: S-shaped F2 trajectories in VCV sequences")
-    print("=" * 72)
-
-    state = vlam.VlamState.initial(GUI_LEN_MM)
-    config = vlam.SynthConfig(play_audio=False)
-
-    all_results = []
-
-    for input_text, description, context in VCV_SEQUENCES:
-        print(f"\n  [{input_text}] {description} ({context})")
-        result = panphon_pipeline(input_text, T=T_BASE, verbose=False)
-        if result is None:
-            print(f"    Failed")
-            continue
-        print(f"    Pval: {result.Pval.shape}")
-
-        sr = vlam.synthwordfen(
-            state=state, articulatory_params=result.Pval,
-            word_tokens=["O", "V", "F"],
-            f0_scale=1.0, soft_rect_s=VALRECT,
-            duration_factor=T_BASE, envelope=result.envelope, config=config,
-        )
-        formants = sr.formants
-        sig = sr.signal
-
-        # Save WAV
-        max_val = float(np.max(np.abs(sig))) if np.max(np.abs(sig)) > 1e-12 else 1.0
-        sig_int16 = np.int16(32767 * sig / (1.01 * max_val))
-        from scipy.io.wavfile import write as wav_write
-        wav_path = DEMO3_DIR / f"{input_text.replace(' ', '_')}.wav"
-        wav_write(str(wav_path), FS_AUDIO, sig_int16)
-
-        all_results.append((input_text, description, formants, result.Pval))
-
-    # ── Figure: F2 trajectories for all VCV sequences ──
-    n = len(all_results)
-    ncols = 3
-    nrows = (n + ncols - 1) // ncols
-    fig, axes = plt.subplots(nrows, ncols,
-                             figsize=(5 * ncols, 4 * nrows),
-                             constrained_layout=True)
-    axes_flat = axes.flatten() if hasattr(axes, 'flatten') else [axes]
-
-    for i, (input_text, desc, formants, _) in enumerate(all_results):
-        ax = axes_flat[i]
-        n_frames = formants.shape[0]
-        t = np.arange(n_frames) * T_STEP_MS
-        ax.plot(t, formants[:, 0], color="#2ca02c", linewidth=1, label="F1")
-        ax.plot(t, formants[:, 1], color="#d62728", linewidth=2.0, label="F2")
-        ax.plot(t, formants[:, 2], color="#1f77b4", linewidth=1, label="F3")
-        ax.set_title(f"{input_text}\n{desc}", fontsize=10)
-        ax.set_xlabel("Time (ms)")
-        ax.set_ylabel("Frequency (Hz)")
-        ax.set_ylim(0, 4000)
-        ax.grid(True, alpha=0.3)
-        if i == 0:
-            ax.legend(fontsize=8)
-
-    for j in range(len(all_results), len(axes_flat)):
-        axes_flat[j].axis("off")
-
-    fig.suptitle(
-        "S-shaped F2 trajectories in VCV sequences\n"
-        "arXiv:2307.02299 (Berthommier 2023) — T=16, K=10, Kvoy=30, Pexp=1",
-        fontsize=12, fontweight="bold")
-    fig_path = DEMO3_DIR / "s_shaped_f2_trajectories.png"
-    fig.savefig(fig_path, dpi=120)
-    plt.close(fig)
-    print(f"\n  Figure saved: {fig_path}")
-
-    # ── Overlay plot: F2 only for all sequences ──
-    fig, ax = plt.subplots(figsize=(10, 6), constrained_layout=True)
-    colors = plt.cm.tab10(np.linspace(0, 1, len(all_results)))
-    for i, (input_text, desc, formants, _) in enumerate(all_results):
-        n_frames = formants.shape[0]
-        t = np.arange(n_frames) * T_STEP_MS
-        ax.plot(t, formants[:, 1], color=colors[i], linewidth=1.8,
-                label=input_text)
-    ax.set_xlabel("Time (ms)")
-    ax.set_ylabel("F2 (Hz)")
-    ax.set_title("F2 overlay — S-shaped trajectories in VCV sequences",
-                 fontsize=12, fontweight="bold")
-    ax.legend(fontsize=9, ncol=2)
-    ax.grid(True, alpha=0.3)
-    fig_path2 = DEMO3_DIR / "f2_overlay.png"
-    fig.savefig(fig_path2, dpi=120)
-    plt.close(fig)
-    print(f"  Overlay saved: {fig_path2}")
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -587,9 +479,6 @@ def main():
     # Demo 1: /ibia/ VCV
     run_demo1_ibia()
 
-    # Demo 3: S-shaped F2
-    run_demo3_s_shaped_f2()
-
     # Demo 5: Cluster pairs
     run_demo5_clusters()
 
@@ -597,7 +486,6 @@ def main():
     print("ALL DEMONSTRATIONS COMPLETE")
     print("=" * 72)
     print(f"  Demo 1 (/ibia/):      {DEMO1_DIR}")
-    print(f"  Demo 3 (S-shaped F2): {DEMO3_DIR}")
     print(f"  Demo 5 (clusters):     {DEMO5_DIR}")
     return 0
 

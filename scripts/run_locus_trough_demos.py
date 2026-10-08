@@ -35,13 +35,17 @@ Demo 2 (Figure 3): Locus equations for /b/, /d/, /g/ across 8 vowels
   Demo 2 section, for the root-cause analysis and the sensitivity sweep.
 
 Demo 4 (Figure 1b): Trough effect
-  - The Body parameter (tongue body, index 2) makes an unexpected
-    front/back movement during /b/
+  - The Body parameter (Maeda index 2, Pval column index 1) makes an
+    unexpected front/back movement during /b/
   - This happens because /b/ is at (rho=1, theta=pi/3) = same position
     as /u/ in the complex plane
   - During /b/, the Body follows zc(t) toward /u/ while vowel
     articulators Sv={3,4,5,7} stay around /i/
-  - Creates a "trough" (dip) in the Body trajectory
+  - The Body excursion is a PEAK (rise toward the /u/ direction:
+    +1.25 from the /i/ plateau -2.25), not a dip: the "trough" of
+    Lindblom et al. (2002) is a discontinuity in anticipatory
+    coarticulation, and the sign of the simulated excursion follows
+    the vowel context (peak over /i/, weak bump over /a/)
 
 Article parameters: T=16, K=10, Kvoy=30, Pexp=1, nu=-1 (already set
 in synthSYL/constants.py).
@@ -80,6 +84,9 @@ plt.rcParams["axes.unicode_minus"] = False
 # ─────────────────────────────────────────────────────────────────────
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
+sys.path.insert(0, str(REPO_ROOT / "scripts"))
+
+import polar_sync  # noqa: E402  (record_pipeline for the trough blocks)
 try:
     from config import (  # noqa: E402
         T_BASE, T_STEP_MS, FS_AUDIO, GUI_LEN_MM, VALRECT,
@@ -433,9 +440,9 @@ def run_demo4_trough():
     print("\n" + "=" * 72)
     print("DEMO 4: Trough effect (Figure 1b)")
     print("=" * 72)
-    print(f"  The Body parameter (index 2) makes an unexpected front/back")
-    print(f"  movement during /b/ because /b/ is at (rho=1, theta=pi/3)")
-    print(f"  = same position as /u/ in the complex plane.")
+    print(f"  The Body parameter (Pval column 1 = Maeda Body) makes an")
+    print(f"  unexpected front/back movement during /b/ because /b/ is at")
+    print(f"  (rho=1, theta=pi/3) = same position as /u/ in the complex plane.")
     print()
 
     # Article position for /b/ (§3): (rho=1, theta=pi/3) — same point as
@@ -452,7 +459,10 @@ def run_demo4_trough():
 
     for input_text, description in TROUGH_VCV:
         print(f"  [{input_text}] {description}")
-        result = panphon_pipeline(input_text, T=T_BASE, verbose=False)
+        blocks: list = []
+        result = polar_sync.record_pipeline(
+            panphon_pipeline, blocks, text=input_text, T=T_BASE,
+            verbose=False)
         if result is None:
             continue
 
@@ -464,7 +474,7 @@ def run_demo4_trough():
             config=config,
         )
         formants = sr.formants
-        all_results.append((input_text, description, result, formants))
+        all_results.append((input_text, description, result, formants, blocks))
         print(f"    Pval: {result.Pval.shape}  Formants: {formants.shape}")
 
     # ── Figure 1: Body parameter (trough effect) for each VCV ──
@@ -476,33 +486,37 @@ def run_demo4_trough():
                              constrained_layout=True)
     axes_flat = axes.flatten() if hasattr(axes, 'flatten') else [axes]
 
-    for i, (input_text, desc, result, formants) in enumerate(all_results):
+    for i, (input_text, desc, result, formants, blocks) in enumerate(all_results):
         ax = axes_flat[i]
         P = result.Pval
         t_ms = np.arange(P.shape[0]) * T_STEP_MS
 
         # Plot all 7 params with Body highlighted
         for j in range(7):
-            if j == 1:  # Body (index 1 in 0-indexed = article index 2)
+            if j == 1:  # Body (Pval column 1 = Maeda Body)
                 ax.plot(t_ms, P[:, j], color="#ff7f0e", linewidth=3.0,
-                        alpha=1.0, label=f"{MAEDA_LABELS[j]} (trough effect)",
+                        alpha=1.0, label=f"{MAEDA_LABELS[j]} (excursion)",
                         zorder=5)
             else:
                 ax.plot(t_ms, P[:, j], color=MAEDA_COLORS[j], linewidth=1.0,
                         alpha=0.5, label=MAEDA_LABELS[j])
 
-        # Consonant region shading (after the first vowel plateau)
-        v_plateau_end = T_BASE  # first vowel plateau ends at T steps
-        cluster_start = v_plateau_end
-        cluster_end = cluster_start + 2 * T_BASE  # cluster = 2*T steps
-        ax.axvspan(t_ms[min(cluster_start, len(t_ms)-1)],
-                   t_ms[min(cluster_end, len(t_ms)-1)],
-                   alpha=0.15, color="#ff7f0e", label="consonant region")
+        # Consonant region shading: the RECORDED cluster blocks (the
+        # frames the engine actually walked through the consonant),
+        # not a hard-coded window.
+        f0 = 0
+        for b in blocks:
+            if b["kind"] == "cluster":
+                ax.axvspan(t_ms[f0], t_ms[f0 + b["n"] - 1],
+                           alpha=0.15, color="#ff7f0e",
+                           label="consonant region (cluster blocks)")
+            f0 += b["n"]
 
         ax.set_xlabel("Time (ms)")
         ax.set_ylabel("Maeda parameter value")
         ax.set_title(f"{input_text} — {desc}\n"
-                     f"Body (orange) shows trough effect during consonant",
+                     f"Body (orange) excursion toward /u/ during the "
+                     f"consonant",
                      fontsize=10, fontweight="bold")
         ax.legend(fontsize=7, ncol=4, loc="upper right")
         ax.grid(True, alpha=0.3)
@@ -523,17 +537,18 @@ def run_demo4_trough():
     # ── Figure 2: Body parameter only, overlay for all VCV ──
     fig, ax = plt.subplots(figsize=(10, 6), constrained_layout=True)
     colors = plt.cm.tab10(np.linspace(0, 1, len(all_results)))
-    for i, (input_text, desc, result, formants) in enumerate(all_results):
+    for i, (input_text, desc, result, formants, blocks) in enumerate(all_results):
         P = result.Pval
         t_ms = np.arange(P.shape[0]) * T_STEP_MS
-        body = P[:, 1]  # Body parameter (index 1 in 0-indexed)
+        body = P[:, 1]  # Body parameter (Pval column 1)
         ax.plot(t_ms, body, color=colors[i], linewidth=2.0,
                 label=f"{input_text} ({desc})")
 
     ax.set_xlabel("Time (ms)")
     ax.set_ylabel("Body parameter (tongue body)")
     ax.set_title("Trough effect — Body parameter overlay\n"
-                 "(the dip during /b/ is the trough effect [29])",
+                 "(during /b/ the Body rises toward the /u/ direction "
+                 "[29]; over /a/ the excursion is weak)",
                  fontsize=12, fontweight="bold")
     ax.legend(fontsize=9)
     ax.grid(True, alpha=0.3)
@@ -596,28 +611,35 @@ def run_demo4_trough():
     plt.close(fig)
     print(f"  Polar explanation: {fig_path3}")
 
-    # ── Detailed analysis for /ibi/ ──
+    # ── Detailed block-based analysis (per VCV) ──
+    # The old argmin analysis scanned frames T..3T and mistook the /i/
+    # plateau (Body = -2.25) for the trough. The excursion is measured
+    # inside the RECORDED cluster blocks against the preceding vowel
+    # plateau instead.
     if all_results:
-        input_text, desc, result, formants = all_results[0]  # /ibi/
-        P = result.Pval
-        body = P[:, 1]
-        t_ms = np.arange(P.shape[0]) * T_STEP_MS
-
-        # Find the trough (minimum of Body during consonant)
-        cons_start = T_BASE
-        cons_end = 3 * T_BASE
-        cons_region = body[cons_start:min(cons_end, len(body))]
-        if len(cons_region) > 0:
-            trough_idx = cons_start + np.argmin(cons_region)
-            trough_val = body[trough_idx]
-            pre_val = body[0]  # before consonant
-            post_val = body[-1]  # after consonant
-
-            print(f"\n  /ibi/ trough analysis:")
-            print(f"    Body before /b/: {pre_val:.3f}")
-            print(f"    Body at trough:  {trough_val:.3f} (at t={t_ms[trough_idx]:.0f} ms)")
-            print(f"    Body after /b/:  {post_val:.3f}")
-            print(f"    Trough depth:    {pre_val - trough_val:.3f}")
+        print("\n  Block-based Body analysis (plateau -> cluster extremum):")
+        for input_text, desc, result, formants, blocks in all_results:
+            P = result.Pval
+            body = P[:, 1]
+            t_ms = np.arange(P.shape[0]) * T_STEP_MS
+            ranges, f0 = [], 0
+            for b in blocks:
+                ranges.append((b["kind"], f0, f0 + b["n"]))
+                f0 += b["n"]
+            plateaus = [(s, e) for k, s, e in ranges if k == "plateau"]
+            for k, s, e in ranges:
+                if k != "cluster":
+                    continue
+                prev = [(ps, pe) for ps, pe in plateaus if pe <= s]
+                ref = body[prev[-1][0]:prev[-1][1]].mean() if prev else np.nan
+                seg = body[s:e]
+                i_ext = s + int(np.argmax(np.abs(seg - ref)))
+                ext = body[i_ext]
+                print(f"    {input_text}: plateau Body = {ref:+.3f} | "
+                      f"cluster extremum {ext:+.3f} at "
+                      f"t={t_ms[i_ext]:.0f} ms "
+                      f"(amplitude {ext - ref:+.3f}, "
+                      f"{'PEAK' if ext > ref else 'DIP'})")
 
 
 # ═══════════════════════════════════════════════════════════════════
