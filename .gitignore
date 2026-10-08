@@ -22,9 +22,8 @@ maeda_params/
 *.avi
 *.npz
 
-# ... except the validated reference reproductions shipped with the repo
-!original_simulations/**/*.wav
-!original_simulations/**/*.npz
+# (the original_simulations/ reference reproductions were removed on
+# 2026-10-08 — discordant with the current engine, see docs/manual.tex)
 
 # LaTeX build artifacts (docs/manual.pdf is tracked)
 *.aux
