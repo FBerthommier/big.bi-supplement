@@ -58,10 +58,9 @@ anchored as in the original Syllable_Synthesis display (`arcplot`:
 departure-side point pd, phase on the arrival-side point pa, θ ∈
 [0, π] / [−π, 0] — teardrop z_c), with the display ν convention
 ν_v = −1 / ν_c = +1. The branches are rebuilt from the engine's
-recorded block sequence by `scripts/polar_sync.py`; see
-`docs/DISPLAY_VS_ENGINE.md` (engine/display anchoring audit) and
-`docs/POLAR_K_AUDIT.md`. These are display conventions only; the
-acoustic engine (K = 10, Kvoy = 30, ν = −1 in
+recorded block sequence by `scripts/polar_sync.py` (see the manual,
+§"Polar Trajectory Reconstruction"). These are display conventions
+only; the acoustic engine (K = 10, Kvoy = 30, ν = −1 in
 `synthSYL/constants.py`) is untouched.
 
 ## Repository Structure
@@ -77,7 +76,7 @@ bigbi-demos/
 ├── synthSYL/                  # Modified synthSYL package (with delta_o, delta_e, COEFCEN syllable chaining)
 │   ├── constants.py            # COEFCEN, DEFAULT_K=10, DEFAULT_KVOY=30, DEFAULT_DELTA_O/E
 │   ├── gesture.py              # Vo/Ve anchor construction with delta_o, delta_e
-│   ├── trajectory.py           # decay chains directly on the word-end anchor (no held @; the old Ve-plateau addition was revoked)
+│   ├── trajectory.py           # decay chains directly on the word-end anchor (no held @)
 │   ├── pipeline.py             # panphon_pipeline() with delta_o, delta_e kwargs
 │   └── ...                     # Other modules from timit-to-Maeda
 ├── vlam.py                    # VLAM (Maeda) articulatory synthesizer
@@ -105,12 +104,8 @@ bigbi-demos/
 ├── docs/                      # Didactic documentation
 │   ├── manual.tex             # LaTeX source (US English)
 │   ├── manual.pdf             # Compiled PDF (26 pages)
-│   ├── DISPLAY_VS_ENGINE.md   # Engine/display arcplot anchoring audit
-│   ├── TRAJECTORY_MATCHING.md # Reference-panel matching + teardrop history
-│   ├── LOCUS_FIG3_DIAGNOSTIC.md  # Demo 2 measurement-frame bug analysis
-│   ├── POLAR_K_AUDIT.md       # K=10/K=30 display-curvature audit
-│   ├── figures/article_format/  # Figures 1/3/4 in the article's format
-│   └── figures/               # Simulation figures (Demos 1–5 + comparisons)
+│   ├── figures/article_format/  # Figures 1/3/4 + supplement in the article's format
+│   └── figures/               # Simulation figures
 └── examples/                  # Quick demos
     ├── demo_bigbi.py          # Minimal big.bi → bi.gbi demo
     └── demo_ibbi.py           # Minimal ib ib → bi bi demo

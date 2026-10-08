@@ -441,15 +441,10 @@ $\delta$ & $V_o = V_e$ $\rho$ & Perception & Article term \\
 \end{tabular}
 \end{table}
 
-\subsection{The $V_e$ plateau --- revoked}
+\subsection{Word-end decay: no held @}
 
-An earlier revision of this repository added a full-amplitude
-$V_e$ plateau before the decay block (\texttt{trajectory.py},
-\texttt{\_handle\_b\_terminal()}), reasoning that ``$V_e$ is a NODE''
-(\S2.2) and should therefore be held like $V$. This addition has been
-\textbf{revoked} (author ruling 2026-10-07): a reduced word-end vowel
-is not pronounced as a tensed vowel --- one does not pronounce
-``ibe'' --- so there is NO held @. The engine now behaves like the
+A reduced word-end vowel is not pronounced as a tensed vowel --- one
+does not pronounce ``ibe''. The engine therefore behaves like the
 reference \texttt{timit-to-Maeda}: the trajectory \emph{reaches} the
 $V_e$ anchor and decays immediately, with no extra hold. The
 reference \texttt{\_handle\_b\_terminal()} chains the decay directly:
@@ -461,12 +456,11 @@ elif A.kind == "V":
         _append_decay_block(blocks, block_info, pt_A, T_cons, pre_amp=1.0)
 \end{lstlisting}
 
-Our engine now matches this (the final vowel of a CV word is still
-held through the regular last-anchor hold; only the extra pre-decay
-$V_e$ plateau is gone). All reference reproductions remain
-bit-identical ($0.000e+00$): /ibia/ never had a $V_e$ plateau, and
-the words whose acoustics change (e.g.\ /ib/) are not part of the
-stored reference gates.
+This repository matches the reference: the final vowel of a CV word
+is still held through the regular last-anchor hold, and there is no
+extra pre-decay $V_e$ plateau. /ibia/ is unaffected (90 steps), while
+/ib/ is 112 steps = 1120~ms (arc + attack + plateau + cluster + decay
++ arc).
 
 % ════════════════════════════════════════════════════════════════
 % Section 5: Reproduction Guide
@@ -492,8 +486,8 @@ sudo apt install ffmpeg  # Linux
 
 This is the main demonstration, showing the verbal transformation
 with $T=16$ (didactic mode), starting at $\delta = 0.50$ for a
-salient boundary schwa @. \textbf{Dot form} (author ruling
-2026-10-07): big.bi is synthesized as the dotted word
+salient boundary schwa @. \textbf{Dot form}: big.bi is synthesized as
+the dotted word
 \texttt{big.bi} --- the '.' between /g/ and /b/ is a C.C syllable
 boundary with \emph{no pause} (the reference Timit-to-Maeda
 semantics: the Ve of ``big'' is coarticulated with the /i/ of
@@ -581,8 +575,7 @@ consonantal $z_c$ in blue) is rebuilt from the engine's
 (\texttt{record\_pipeline} instruments the trajectory helpers without
 touching the engine files; \texttt{build\_branches} then draws both
 branches from the blocks the engine actually walked). The original
-\texttt{Syllable\_Synthesis} display anchoring is used --- see
-\texttt{docs/DISPLAY\_VS\_ENGINE.md} for the full audit:
+\texttt{Syllable\_Synthesis} display anchoring is used:
 
 \begin{itemize}
 \item every sub-arc carries the phase on the \textbf{arrival-side}
@@ -645,9 +638,8 @@ $T = 16$), the reproduced planning panels
 \end{itemize}
 
 The article's Figure~4 uses a different polar target table (the
-AP-model layout; see \texttt{docs/TRAJECTORY\_MATCHING.md}), so the
-panel-level comparison is gestural (same teardrop topology, same
-gesture counts), not a point-wise overlay.
+AP-model layout), so the panel-level comparison is gestural (same
+teardrop topology, same gesture counts), not a point-wise overlay.
 
 % ════════════════════════════════════════════════════════════════
 % Section 7: Results and Duration Analysis
@@ -684,11 +676,10 @@ bi.gbi (fused) & 1.00 & 160 & 1600 & $-160$ ms ($-1T$) \\
 The observable fusion gain is $1T = 160$~ms, from consonant
 clustering: the fused /gb/ cluster chains the /g/$\to$/b/ sub-arcs
 directly through the shared vowel anchor, and the separate syllable-2
-onset gesture disappears. (The earlier $\approx 3T$ reading compared
-against the space form ``big bi'' included the inter-word pause
-machinery --- decay + pause arc $\approx 2T$ --- which, as established,
-is not part of big.bi: the '.' is a C.C syllable boundary without
-pause, and the only latencies are the stop closures.)
+onset gesture disappears. This matches the article's ``the gain of
+consonant clustering is a reduction of one period $T$'': in the dot
+form the '.' is a C.C syllable boundary without pause, and the only
+latencies are the stop closures.
 
 \subsection{Audio verification: per-segment WAVs, /i/ height, valrect}
 
@@ -714,15 +705,11 @@ difference. No digital clipping anywhere ($<$0.02\,\% of samples at
 peak). \texttt{valrect} (the soft-rectification smoothness of the
 vocal-tract area function, \texttt{soft\_rect(x, s)} with
 $s = 0$ $\equiv$ hard rectification) is \textbf{1.10 in every
-script} (author ruling 2026-10-07: raised from the article's
-canonical 0.75 after comparative listening, to reduce the perceived
-fizz on /i/; see \texttt{docs/VALRECT\_110.md} for the re-baselined
-reference). Measured on ``bi bi''/``ib ib'' test utterances, the
-high-frequency energy ratio above 5~kHz decreases from 0.17\,\% to
-0.15\,\% (``bi bi'') and from 0.13\,\% to 0.12\,\% (``ib ib'')
-between 0.75 and 1.10, with no change in F0 or duration; test WAVs
-for listening comparison are kept outside the repository
-(\texttt{P:$\backslash$bigbi-workspace$\backslash$valrect\_test\_*.wav}).
+script} --- a documented difference from the article, whose canonical
+value is 0.75: the raised value reduces the perceived fizz on /i/.
+Measured on ``bi bi''/``ib ib'' utterances, the high-frequency energy
+ratio above 5~kHz is 0.15\,\% (``bi bi'') and 0.12\,\% (``ib ib'') at
+1.10 (0.17\,\%/0.13\,\% at 0.75), with no change in F0 or duration.
 
 \subsection{Perceptual salience of the schwa @}
 
@@ -763,10 +750,8 @@ $V = /i/$ (COEFCEN $= 1$) and the perception shifts from
   & \texttt{\_insert\_syllable\_onset\_anchors()} \\
   & Fixed $V_o = (\delta_o \cdot \rho_V, \theta_V)$
   (was $[\delta_o, \theta_V]$) \\
-\texttt{synthSYL/trajectory.py} & REVOKED addition: the $V_e$ plateau
-  (full-amplitude before decay) was added in an earlier revision and
-  removed on 2026-10-07 --- the decay now chains directly on the
-  word-end anchor (no held @), as in the reference package \\
+\texttt{synthSYL/trajectory.py} & Word-end decay chains directly on
+  the $V_e$ anchor (no held @; see \S4.3) \\
 \texttt{synthSYL/pipeline.py} & Added $\delta_o$, $\delta_e$ kwargs
   to \texttt{panphon\_pipeline()} \\
 \bottomrule
@@ -888,10 +873,7 @@ K=10, Kvoy=30, Pexp=1). (a) Polar planning trajectories ($z_v$ red,
 $z_c$ blue — original arcplot anchoring, teardrop $z_c$). (b) The 7
 Maeda parameters with phoneme ticks /i/ /b/ /i/ /a/ (Body excursion
 toward /u/ during /b/). (c) Formant trajectory (V-shaped F2 dip during
-/b/). (d) Spectrogram + wave. Compare with the article's Figure~1
-(side-by-side sheet:
-\texttt{P:$\backslash$bigbi-workspace$\backslash$sheet\_fig1.jpg},
-kept outside the repository).}
+/b/). (d) Spectrogram + wave.}
 \end{figure}
 
 \subsection{Demo 2: Locus equations (Figure 3)}
@@ -962,10 +944,10 @@ Consonant & Slope ($a$) & Intercept ($b$) & $r^2$ & Article Fig.~3 ($a$) \\
 \end{tabular}
 
 \smallskip
-Measured at \texttt{valrect} $= 1.10$ (author ruling 2026-10-07; at
-the historical 0.75 the slopes were 0.704 / 0.412 / 0.644 / 2.107).
-The velar $r^2 = 1.000$ is computed on only 3 points (the back vowels
-o, O, u) and is therefore barely informative.
+Measured at \texttt{valrect} $= 1.10$ (a documented difference from
+the article's canonical 0.75; see \S7.2). The velar $r^2 = 1.000$ is
+computed on only 3 points (the back vowels o, O, u) and is therefore
+barely informative.
 \end{center}
 
 The article-figure slopes in the last column were measured by pixel
@@ -1005,51 +987,35 @@ ordering and the linearity of the points are essentially unaffected.
 This is a coordinate-table difference, not a change in the
 coarticulation behaviour.
 
-\subsubsection{Root cause of the previous /b/--/d/ inversion}
+\subsubsection{Measurement-protocol sensitivity}
 
-An earlier version of this demo reported a spurious /b/--/d/
-inversion (/d/ slope $1.633$, /b/ $0.974$). The cause was purely a
-\textbf{measurement-protocol bug}, not a model or synthesizer defect:
+The measured slopes depend on the protocol, and the sensitivity was
+checked on three factors:
 
 \begin{itemize}
-\item The script derived the measurement frame from
-  \texttt{anchor.i * T}, where \texttt{anchor.i} is the \emph{node
-  index} in the segment list (not a time). For a CV word the V anchor
-  has $i = 1$, so F2 was sampled at frames $T{+}3$ (locus) and
-  $T{+}8$ (``vowel'') --- both \emph{inside the silent Vo$\to$C
-  closure}, up to 13 frames before the release. The resulting
-  regression of closure-phase F2 against closure-phase F2 produced
-  the steep spurious /d/ line (reproduced exactly: $a = 1.633$,
-  $b = -1316$, $r^2 = 0.991$).
 \item \textbf{The soft rectification is not implicated.}
-  \texttt{valrect} $= 0.75$ (\texttt{soft\_rect\_s}) was the canonical
-  value of the original packages: \texttt{vlam.py} in this repository
-  is byte-identical to \texttt{FBerthommier/timit-to-Maeda}, whose
-  \texttt{batch\_synthesize.py} defaults to \texttt{-{}-valrect 0.75}.
-  (Since 2026-10-07 this repository defaults to \texttt{valrect} =
-  1.10 --- author ruling after comparative listening, see
-  \texttt{docs/VALRECT\_110.md}; the sensitivity evidence below is
-  unchanged.)
-  It is applied to the \emph{area function} (soft\_rect of section
-  areas, preventing zero/negative areas during closure), not to the
-  articulatory parameters. A sensitivity sweep confirms the locus
-  slopes are insensitive to it over $s \in [0.5, 2.0]$
+  \texttt{valrect} (\texttt{soft\_rect\_s}) is applied to the
+  \emph{area function} (soft\_rect of section areas, preventing
+  zero/negative areas during closure), not to the articulatory
+  parameters. A sensitivity sweep shows the locus slopes are
+  insensitive to it over $s \in [0.5, 2.0]$
   ($a(/d/) = 0.562 \pm 0.011$ at release$+$50~ms); only the hard
   limit $s \to 0$ (hard clipping) breaks the synthesis.
 \item \textbf{$\delta_o$ is not implicated either.} Sweeping
   $\delta_o \in \{0.5, 0.7, 1.0\}$ moves $a(/d/) $ by less than
   $0.02$.
 \item \textbf{The measurement instant is the decisive parameter.}
-  With the release correctly located at frame $2T$, the /d/ slope
-  varies from 0.25 (release$+$0) to 0.79 (release$+$6 frames), passing
-  through the article value around release$+$3 (30~ms). The /b/ slope
-  varies from 0.50 to 0.92 over the same range.
+  With the release located at frame $2T$, the /d/ slope varies from
+  0.25 (release$+$0) to 0.79 (release$+$6 frames), passing through
+  the article value around release$+$3 (30~ms). The /b/ slope varies
+  from 0.50 to 0.92 over the same range.
 \end{itemize}
 
-No engine file (\texttt{vlam.py}, \texttt{synthSYL/}) was modified;
-only the measurement logic of the demo script, the /g/ allophony
-grouping of /a/, and \texttt{config.py} (new constant
-\texttt{LOCUS\_OFFSET\_STEPS}) changed.
+The measurement logic lives in the demo script
+(\texttt{scripts/run\_locus\_trough\_demos.py}) and
+\texttt{config.py} (constant \texttt{LOCUS\_OFFSET\_STEPS} $= 3$, the
+article's 30~ms); no engine file (\texttt{vlam.py},
+\texttt{synthSYL/}) is involved.
 
 \textbf{Note:} For a detailed comparison with Ohman's spectrographic
 data, see the 2025 companion article (arXiv:2505.22455).
@@ -1092,8 +1058,8 @@ vowel table of \texttt{synthSYL/phonology.py} places /u/ at
 $(\rho_u = 1.0,\ \theta_u = \pi/3)$, so at the article position the
 two targets coincide exactly ($\rho_b = \rho_u$). The synthSYL
 registry default $\rho_b = 1.2$ shares the same direction but a
-larger radius; the article-format Figure~1 keeps this default
-(homogeneity decision of 2026-10-08), which is why its Body peak is
+larger radius; the article-format Figure~1 keeps this default, which
+is why its Body peak is
 $+1.50$ instead of $+1.25$ (see below).
 During the /b/ consonant the Body parameter rises from the vowel
 plateau toward the /u/-direction value --- a \textbf{peak}, not a
@@ -1134,8 +1100,8 @@ VCV & Plateau Body & Extremum during C & Instant & Amplitude \\
 \smallskip
 All Body values are Pval-level (planning/engine) quantities and are
 therefore valrect-independent; the formant values in this section are
-measured at \texttt{valrect} $= 1.10$ (author ruling 2026-10-07,
-\texttt{docs/VALRECT\_110.md}). The medial closure spans frames
+measured at \texttt{valrect} $= 1.10$ (\S7.2). The medial closure
+spans frames
 61--64 and the release is at frame 65 (650 ms) for the T=16 words;
 the extremum always falls INSIDE the cluster block (e.g.\ 630 ms for
 /ibi/, whose cluster spans frames 48--79 = 480--790 ms). In /ibi/,
@@ -1143,11 +1109,11 @@ F2 falls from the /i/ plateau $2276$~Hz to a V-minimum of $1630$~Hz
 at 630 ms and returns to $2276$~Hz.
 \end{center}
 
-The old claim ``Body before /b/ $\approx 0$, trough at $-2.25$,
-$t = 160$~ms'' was a measurement artifact: an \texttt{argmin} over
-frames $T..3T$ mistook the /i/ PLATEAU (Body $= -2.25$) for the
-effect. The excursion is a \textbf{rise toward $+1.25$} peaking at
-$\approx 630$~ms (T=16) or $\approx 390$~ms (T=10).
+The excursion is a \textbf{rise toward $+1.25$} peaking at
+$\approx 630$~ms (T=16) or $\approx 390$~ms (T=10) --- it must be
+measured inside the recorded cluster blocks against the preceding
+vowel plateau; a naive scan of frames $T..3T$ would instead pick up
+the /i/ plateau itself (Body $= -2.25$).
 
 \textbf{Why $+1.25$ here and $+1.50$ in Figures 1/10--12.} The
 amplitude depends on $\rho_b$: the registry default $\rho_b = 1.2$
@@ -1290,14 +1256,6 @@ branch $z_c$ (blue) visits both consonant targets in sequence.}
 % ════════════════════════════════════════════════════════════════
 \subsection{Figure 4: big.bi $|$ bi.gbi (article format)}
 
-(The former ``original simulations'' reproductions
-\texttt{original\_simulations/} were removed on 2026-10-08: they had
-been generated before the $V_e$-plateau revocation and the dot-form
-ruling and were discordant with the current engine --- e.g.\ /ib/ was
-still realized as ``ibe''. The article-format figures in
-\texttt{docs/figures/article\_format/}, produced by
-\texttt{scripts/make\_article\_figures.py}, supersede them.)
-
 big.bi is rendered with the \textbf{dot form} (\texttt{big.bi}): per
 the reference \texttt{Timit-to-Maeda} semantics
 (\texttt{\_should\_split\_at\_dot}: C.C $\to$ syllable split, C.V /
@@ -1331,24 +1289,19 @@ shared /i/). bi.gbi: the dot between /i/ and /g/ is V.C and therefore
 ignored (syllables merged), giving the fused /gb/ cluster (2
 gestures). Top: polar planning panels (teardrop $z_c$, red $z_v$
 holding the /i/ radius). Middle: Maeda parameters with phoneme ticks.
-Bottom: wave (ms) + spectrogram (s), same total duration. Compare with
-the article's Figure~4 (side-by-side sheet kept outside the
-repository:
-\texttt{P:$\backslash$bigbi-workspace$\backslash$sheet\_fig4.jpg}).}
+Bottom: wave (ms) + spectrogram (s), same total duration.}
 \end{figure}
 
 The supplement transformation /ib/ $\to$ /bi/ (\S3: ``The classical
 transformation of /ib/ into /bi/ is given in the supplement.'') is
-REGENERATED at the current engine state
-(\texttt{scripts/make\_supplement\_ib\_bi.py} $\to$
-\texttt{docs/figures/article\_format/supplement\_ib\_bi.png}): the
+reproduced by \texttt{scripts/make\_supplement\_ib\_bi.py}
+($\to$ \texttt{docs/figures/article\_format/supplement\_ib\_bi.png}):
+the
 three cases /ib/ $\delta=0.5$ (schwa @ audible, /b/ in coda),
 /ib/ $\delta=1.0$ ($V_o = V_e = V$, fusion) and /bi/ $\delta=1.0$
 (/b/ in onset, the fused form), each as Maeda parameters + formants +
 spectrogram. Gate: /ib/ is 112 steps = 1120~ms at BOTH deltas, the
-/b/ cluster followed DIRECTLY by the decay (no held @ --- the revoked
-$V_e$ plateau is absent, unlike the removed pre-2026-10-07
-reproduction).
+/b/ cluster followed DIRECTLY by the decay (no held @).
 
 \begin{figure}[h]
 \centering
@@ -1450,12 +1403,11 @@ contributions are:
 \end{enumerate}
 
 The duration reduction observed in the dot form is $1T = 160$~ms
-(with $T=16$), from consonant clustering alone (\S7.1). The article's
-$3T$ figure ($1T$ from clustering $+$ $2T$ from $V_o$/$V_e$ plateau
-absorption) was measured in an earlier revision against the space
-form ``big bi'' and included the inter-word pause machinery, which is
-not part of the dot form; no $\approx 3T$ claim is made for the
-current implementation.
+(with $T=16$), from consonant clustering alone (\S7.1), matching the
+article's ``the gain of consonant clustering is a reduction of one
+period $T$''. (The article's broader $3T$ decomposition additionally
+involves the inter-word pause machinery of the space form, which the
+dot form does not have.)
 
 The polar topology matches the article's Figure~4: at $\delta < 1$,
 the consonantal branch makes 2 separate excursions; at $\delta = 1$

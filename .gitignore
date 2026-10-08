@@ -22,8 +22,8 @@ maeda_params/
 *.avi
 *.npz
 
-# (the original_simulations/ reference reproductions were removed on
-# 2026-10-08 — discordant with the current engine, see docs/manual.tex)
+# Historical/audit material kept locally, NOT distributed
+docs/archive/
 
 # LaTeX build artifacts (docs/manual.pdf is tracked)
 *.aux
