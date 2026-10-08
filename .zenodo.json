@@ -1,0 +1,37 @@
+{
+  "title": "big.bi \u2192 bi.gbi: articulatory simulation of the verbal transformation (VLAM/Maeda reproduction of arXiv:2307.02299)",
+  "upload_type": "software",
+  "access_right": "open",
+  "license": "mit",
+  "creators": [
+    {
+      "name": "Berthommier, Fr\u00e9d\u00e9ric",
+      "affiliation": "GIPSA-lab, CNRS, Universit\u00e9 Grenoble Alpes",
+      "orcid": ""
+    }
+  ],
+  "description": "<p>Python implementation and didactic material reproducing the demonstrations of <em>Why can big.bi be changed to bi.gbi? A mathematical model of syllabification and articulatory synthesis</em> (arXiv:2307.02299, Berthommier 2023) with the VLAM (Maeda, 7 parameters) articulatory synthesizer and the modified synthSYL syllable-graph engine (delta_o/delta_e anchoring, COEFCEN syllable chaining, dot-form big.bi, no held @).</p><p>Contains: the didactic manual (PDF), four self-contained interactive HTML demonstrations (big.bi \u2192 bi.gbi; reversible and NON-reversible U-shaped Tp sweeps ib ib \u2194 bi bi; trough effect with per-VCV audio), article-format figures (Figs 1/3/4, supplement /ib/ \u2192 /bi/, locus equations, trough effect), the polar two-branch reconstruction (polar_sync), and measurement/ablation scripts (locus equations, trough-effect ablations).</p><p>Documented differences from the article's own settings: valrect = 1.10 (article: 0.75), registry /b/ radius rho_b = 1.2 for the article-format Figure 1, revised synthSYL vowel table compressing the F2(vowel) axis.</p>",
+  "related_identifiers": [
+    {
+      "identifier": "https://arxiv.org/abs/2307.02299",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://github.com/FBerthommier/big.bi-supplement",
+      "relation": "isIdenticalTo",
+      "scheme": "url"
+    }
+  ],
+  "keywords": [
+    "articulatory synthesis",
+    "verbal transformation",
+    "consonant clusters",
+    "coarticulation",
+    "locus equations",
+    "trough effect",
+    "VLAM",
+    "Maeda parameters"
+  ],
+  "language": "eng"
+}
