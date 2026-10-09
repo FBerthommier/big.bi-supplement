@@ -862,8 +862,11 @@ are:
 \item \textbf{(b) Flow of articulatory parameters} --- the 7 Maeda
   parameters over time. The \textit{Body} parameter makes an
   unexpected front/back movement during /b/, rising toward the /u/
-  direction, because /b/ lies on the same angular direction as /u/ in
-  the complex plane (see Demo~3). With the synthSYL registry default
+  direction (numerically a rise; articulatorily a lowering and
+  backing of the tongue body away from /i/, per the Maeda sign
+  convention --- see Demo~3), because /b/ lies on the same angular
+  direction as /u/ in the complex plane. With the synthSYL registry
+  default
   $\rho_b = 1.2$ used by this figure, the Body peaks at $+1.50$
   (measured) above the /i/ plateau $-2.25$; the article position
   $\rho_b = 1.0$ gives $+1.25$.
@@ -1079,8 +1082,15 @@ larger radius; the article-format Figure~1 keeps this default, which
 is why its Body peak is
 $+1.50$ instead of $+1.25$ (see below).
 During the /b/ consonant the Body parameter rises from the vowel
-plateau toward the /u/-direction value --- a \textbf{peak}, not a
-dip, whatever the vowel context (verified by script; see the table below).
+plateau toward the /u/-direction value --- a \textbf{numerical peak},
+not a dip, whatever the vowel context (verified by script; see the
+table below). This increase follows the Maeda SIGN CONVENTION:
+negative Body values encode the fronted/high tongue-body posture of
+/i/, positive values a more retracted posture. The rise from $-2.25$
+to $+1.25$ therefore corresponds articulatorily to a POSTERIOR and
+DOWNWARD displacement of the tongue body relative to the extreme
+front/high posture of /i/ --- a lowering (and backing) of the tongue
+with respect to V1, not an elevation.
 
 \textbf{How Body is actually computed (resolves the $S_v$/$S_c$
 partition).} The selection vectors are \emph{not} a partition of the
@@ -1098,8 +1108,9 @@ NON-overwritten parameters (Dorsum, Tip, LipP, Hy, i.e.\
 $S_v = \{3,4,5,7\}$ article numbering / code $\{2,3,4,6\}$) keep
 their $z_v$ values through the cluster.
 
-\textbf{Measured values} from the recorded engine blocks; article positions $\rho_b = 1.0$; T = 16; the full table is
-reproduced by \texttt{scripts/run\_trough\_ablations.py}]:
+\textbf{Measured values} (from the recorded engine blocks; article
+positions $\rho_b = 1.0$; T = 16; the full table is reproduced by
+\texttt{scripts/run\_trough\_ablations.py}):
 
 \begin{center}
 \begin{tabular}{lcccc}
@@ -1126,11 +1137,13 @@ F2 falls from the /i/ plateau $2276$~Hz to a V-minimum of $1630$~Hz
 at 630 ms and returns to $2276$~Hz.
 \end{center}
 
-The excursion is a \textbf{rise toward $+1.25$} peaking at
+The excursion is a \textbf{numerical rise toward $+1.25$} peaking at
 $\approx 630$~ms (T=16) or $\approx 390$~ms (T=10) --- it must be
 measured inside the recorded cluster blocks against the preceding
 vowel plateau; a naive scan of frames $T..3T$ would instead pick up
-the /i/ plateau itself (Body $= -2.25$).
+the /i/ plateau itself (Body $= -2.25$). In articulatory terms, and
+recalling the sign convention above, this numerical peak is a
+lowering and backing of the tongue body relative to /i/.
 
 \textbf{Why $+1.25$ here and $+1.50$ in Figures 1/10--12.} The
 amplitude depends on $\rho_b$: the registry default $\rho_b = 1.2$
@@ -1170,21 +1183,35 @@ minimum differs between $\theta_b = \pi$ and $\pi/3$); and among
 /b d g/ only /b/ (and weakly /g/) produces it (iv).
 \end{center}
 
-\textbf{Relation to the source.} The simulated Body excursion is
-\emph{qualitatively consistent with} the trough effect --- an
-unexpected tongue-body movement during the labial stop, in the /u/
-(backing/lowering) direction) --- a model interpretation. It is NOT a
-confirmation of it: (a) the direction is a consequence of the
-$\theta_b = \theta_u$ model placement, which is itself a modeling
-choice; (b) the simulated amplitude ($+3.50$ parameter units over
-/i/) is an order of magnitude larger than the ``relatively small''
-deviations reported in the articulographic literature, and is an
-architectural consequence of Body $\in S_c$, to be discussed if a
-quantitative comparison is ever established; (c) the trough of
-Lindblom et al.\ is a DORSUM LOWERING over /i/---/i/, whereas the
-sign of the simulated excursion follows the context (a weak bump
-$+0.30$ over /a/, whose Body level $+1.00$ already sits near the /u/
-direction).
+\textbf{Emergence without deactivation.} The model implements no
+explicit activation/deactivation mechanism: the trough-like pattern
+emerges from the continuous modulation of the two trajectories
+$z_v(t)$, $z_c(t)$ combined with the selection vectors. It can
+therefore be regarded as a \emph{functional analogue} of the
+deactivation described by Lindblom et al.\ --- obtained without
+taking activation/deactivation as a primitive of the control
+architecture. This is an interpretive consequence of the present
+model, not a claim of the original article.
+
+\textbf{Relation to the source.} Read with the sign convention in
+mind, the kinematic pattern produced by the model is more consistent
+with Lindblom's trough effect than the purely numerical ``peak''
+wording suggests: what the simulation produces during the labial
+stop is a lowering and backing of the tongue body away from the V1
+posture (toward the /u/ direction) --- precisely the kinematic
+signature of the trough, the dorsum leaving the V1 configuration
+into the closure and returning as V2 approaches. It is not,
+however, a confirmation of the Lindblom mechanism: (a) the direction
+is a consequence of the $\theta_b = \theta_u$ model placement, which
+is itself a modeling choice; (b) the simulated amplitude ($+3.50$
+parameter units over /i/) is an order of magnitude larger than the
+``relatively small'' deviations reported in the articulographic
+literature --- an architectural consequence of Body $\in S_c$ --- to
+be discussed if a quantitative comparison is ever established; (c)
+the original observations rest on movement data only, never
+acoustics; (d) the sign of the simulated excursion follows the
+context (a weak bump $+0.30$ over /a/, whose Body level $+1.00$
+already sits near the /u/ direction).
 
 An interactive HTML simulation illustrating this effect accompanies
 this section (directory \texttt{simulations/}).
@@ -1193,11 +1220,12 @@ this section (directory \texttt{simulations/}).
 \centering
 \includegraphics[width=\textwidth]{figures/demo4/trough_effect.png}
 \caption{Trough effect: Body parameter variation during /b/, /d/, /g/
-in VCV sequences. The Body (orange, thick line) shows a PEAK during
-the consonant for /ibi/ (rise from the /i/ level $-2.25$ toward the
-/u/-direction value $+1.25$); the excursion over /aba/ is weak
-($+0.30$). The shaded region is the recorded engine cluster block
-(frames 480--790 ms at T=16).}
+in VCV sequences. The Body (orange, thick line) shows a numerical
+PEAK during the consonant for /ibi/ (rise from the /i/ level $-2.25$
+toward the /u/-direction value $+1.25$; articulatorily, per the Maeda
+sign convention, a lowering and backing of the tongue body away from
+/i/); the excursion over /aba/ is weak ($+0.30$). The shaded region
+is the recorded engine cluster block (frames 480--790 ms at T=16).}
 \end{figure}
 
 \begin{figure}[h]
@@ -1207,7 +1235,9 @@ the consonant for /ibi/ (rise from the /i/ level $-2.25$ toward the
 excursion is strong for /ibi/ ($+3.50$ from the /i/ plateau) and weak
 for /aba/ ($+0.30$ from the /a/ plateau, whose Body level $+1.00$
 already sits near the /u/ direction); /idi/ and /igi/ are nearly
-flat. The /b/ target lies on the same angular direction as /u/.}
+flat. The /b/ target lies on the same angular direction as /u/; the
+numerical rise corresponds to a lowering/backing of the tongue body
+relative to /i/ (Maeda sign convention).}
 \end{figure}
 
 \begin{figure}[h]
@@ -1217,7 +1247,8 @@ flat. The /b/ target lies on the same angular direction as /u/.}
 angular direction as /u/ (orange circle) in the complex plane --- with
 the article position $\rho_b = 1$ the two targets coincide. During
 /b/, the Body parameter follows $z_c(t)$ toward /u/, producing the
-excursion while the non-overwritten vowel articulators stay around
+excursion --- a tongue-body lowering/backing relative to /i/ --- while
+the non-overwritten vowel articulators stay around
 /i/.}
 \end{figure}
 
