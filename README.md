@@ -30,6 +30,11 @@ links that work directly on GitHub.
 - **[Didactic manual (PDF)](docs/manual.pdf)** — model, reproduction
   guide, all demonstrations, results and duration analysis
   (source: [docs/manual.tex](docs/manual.tex)).
+- **[Implementation Differential & Provenance Supplement (PDF)](docs/differential_supplement.pdf)** —
+  the 2023-article vs 2026-engine parameter/rule differential, the
+  reproduction evidence, three corrigenda to the manual, and the
+  version/provenance statement
+  (source: [docs/differential_supplement.tex](docs/differential_supplement.tex)).
 
 **▶ Interactive demonstrations** (self-contained HTML: embedded dual
 video — sagittal tract | polar plot — with chapters, captions and
@@ -157,7 +162,9 @@ bigbi-demos/
 │   └── trough_effect.html                   # Trough effect explainer (audio + figures)
 ├── docs/                      # Didactic documentation
 │   ├── manual.tex             # LaTeX source (US English)
-│   ├── manual.pdf             # Compiled PDF (26 pages)
+│   ├── manual.pdf             # Compiled PDF (29 pages)
+│   ├── differential_supplement.tex  # Implementation differential & provenance (source)
+│   ├── differential_supplement.pdf  # Implementation differential & provenance (13 pages)
 │   ├── figures/article_format/  # Figures 1/3/4 + supplement in the article's format
 │   └── figures/               # Simulation figures
 └── examples/                  # Quick demos
@@ -197,6 +204,19 @@ This repository extends the original [timit-to-Maeda](https://github.com/FBertho
      boundary; with the symmetric delta_o = delta_e the value is
      unchanged (the "big@bi" schwa demonstrations are preserved, and
      all reference reproductions remain bit-identical).
+
+**Implementation differential and provenance.** The registry parameters
+are inherited from the timit-to-Maeda engine and recalibrated by ear;
+they do not all coincide with the values published in the 2023 article.
+The complete differential (seven catalogued differences, quantified in
+Maeda units, with code locations), the reproduction evidence, three
+corrigenda to the manual (two manual statements and the legacy /dg/, /gd/
+`Sc` labels in the Demo 5 cluster figures), and the version/provenance
+statement are catalogued in
+[docs/differential_supplement.pdf](docs/differential_supplement.pdf).
+None of the differences is an equation-level change, and no result cited
+in the article is affected (the divergence is confined to the extended
+CVCCV utterances adga/agda of Demo 5).
 
 ## The Model
 

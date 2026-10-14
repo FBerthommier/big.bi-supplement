@@ -222,9 +222,13 @@ P_i = \Omega_i + \rho \cdot \Psi_{1,i} \cdot \cos(\Psi_{2,i} - \theta)
 \end{equation}
 
 where $\Omega$, $\Psi_1$, and $\Psi_2$ are calibration constants
-(article Table~1). The CO matrix matches the article's Table~1 almost
-exactly; the only difference is the Tip parameter $c_0$: $-2.75$ in
-\texttt{synthSYL/}\texttt{constants.py} vs $-3.0$ in the article.
+(article Table~1). The CO matrix matches the article's Table~1 except
+for the Tip row, where two parameters differ: $\Omega = 0.5$
+(article: 0) and $\Psi_1 = -2.75$ (article: $-3.0$) in
+\texttt{synthSYL/constants.py}; all other rows are identical. The
+deviation is inherited from the original timit-to-Maeda registry and is
+quantified in the Differential Supplement, \S4 (up to 0.70 Maeda units
+on Tip for /d/, /g/; zero for /b/ and /gb/).
 
 \subsection{Article parameters}
 
@@ -274,7 +278,9 @@ plane:
 \end{itemize}
 
 For example, the vowel /i/ is at $(\rho=0.9, \theta=5\pi/3)$ and the
-consonant /b/ is at $(\rho=1.2, \theta=\pi/3)$.
+consonant /b/ is at $(\rho=1.2, \theta=\pi/3)$ (registry values; the
+article publishes $\rho=1$ for the corner vowels and for /b/ --- see the
+Differential Supplement, \S4, row~3).
 
 \subsection{Arc trajectories}
 
@@ -533,7 +539,7 @@ The U-shaped variation lets the listener clearly perceive:
 (fusion) $\to$ \texttt{ib ib} again at the end. This $T_p$ sweep is
 the /ibi/ supplement demonstration (\S3 classical transformation),
 where the inter-word pause IS the object of study; it is distinct
-from the big.bi sweep of Demonstration~1, which — in the dot form —
+from the big.bi sweep of Demonstration~1, which --- in the dot form ---
 carries no $T_p$ dimension.
 
 \begin{lstlisting}[language=bash]
@@ -722,8 +728,9 @@ difference. No digital clipping anywhere ($<$0.02\,\% of samples at
 peak). \texttt{valrect} (the soft-rectification smoothness of the
 vocal-tract area function, \texttt{soft\_rect(x, s)} with
 $s = 0$ $\equiv$ hard rectification) is \textbf{1.10 in every
-script} --- a documented difference from the article, whose canonical
-value is 0.75: the raised value reduces the perceived fizz on /i/.
+script} --- a documented difference: the article publishes no such
+setting, and 0.75 is the historical timit-to-Maeda default; the raised
+value reduces the perceived fizz on /i/.
 Measured on ``bi bi''/``ib ib'' utterances, the high-frequency energy
 ratio above 5~kHz is 0.15\,\% (``bi bi'') and 0.12\,\% (``ib ib'') at
 1.10 (0.17\,\%/0.13\,\% at 0.75), with no change in F0 or duration.
@@ -890,7 +897,7 @@ are:
 \caption{Figure 1, article format (\texttt{make\_article\_figures.py}):
 four-step synthesis of /ibia/ with $T=100$ms ($T_{\text{base}}=10$,
 K=10, Kvoy=30, Pexp=1). (a) Polar planning trajectories ($z_v$ red,
-$z_c$ blue — original arcplot anchoring, teardrop $z_c$). (b) The 7
+ $z_c$ blue --- original arcplot anchoring, teardrop $z_c$). (b) The 7
 Maeda parameters with phoneme ticks /i/ /b/ /i/ /a/ (Body excursion
 toward /u/ during /b/). (c) Formant trajectory (V-shaped F2 dip during
 /b/). (d) Spectrogram + wave.}
@@ -964,8 +971,10 @@ Consonant & Slope ($a$) & Intercept ($b$) & $r^2$ & Article Fig.~3 ($a$) \\
 \end{tabular}
 
 \smallskip
-Measured at \texttt{valrect} $= 1.10$ (a documented difference from
-the article's canonical 0.75; see \S7.2). The velar $r^2 = 1.000$ is
+Measured at \texttt{valrect} $= 1.10$ (a documented difference; the
+article publishes no valrect --- 0.75 is the historical timit-to-Maeda
+default; see \S7.2 and the Differential Supplement, \S4, row~6). The
+velar $r^2 = 1.000$ is
 computed on only 3 points (the back vowels o, O, u) and is therefore
 barely informative.
 \end{center}
@@ -1265,19 +1274,25 @@ The article (\S3) describes the tuning of the six pairs of
 /bd/ & abda & \{1,2,3,6\} & /b/ involved $\to$ Sc=\{1,2,3,6\} \\
 /bg/ & abga & \{1,2,3,6\} & /b/ involved, /g/ palatal \\
 /db/ & adba & \{1,2,3,6\} & /b/ involved $\to$ Sc=\{1,2,3,6\} \\
-/dg/ & adga & \{1,2,3,4\} & no /b/ $\to$ Sc=\{1,2,3,4\} \\
+/dg/ & adga & \{1,2,3\} & engine threshold rule (place-index sum $> 2$) \\
 /gb/ & agba & \{1,2,3,6\} & /b/ involved, /g/ palatal \\
-/gd/ & agda & \{1,2,3,4\} & no /b/ $\to$ Sc=\{1,2,3,4\} \\
+/gd/ & agda & \{1,2,3\} & engine threshold rule (place-index sum $> 2$) \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\textbf{Rule:} when /b/ is involved in the pair, the selection vector
-is $S_c = \{1,2,3,6\}$ (article numbering; code $\{0,1,2,5\}$ = jaw,
-body, dorsum, LipH); otherwise
-$S_c = \{1,2,3,4\}$ (article numbering; code $\{0,1,2,3\}$ = jaw,
-body, dorsum, tip). The /g/ is systematically
-palatal when in a cluster.
+\textbf{Rule (engine, verified):} the selection vector is
+$S_c = \{1,2,3,6\}$ (code $\{0,1,2,5\}$ = jaw, body, dorsum, LipH) when
+the sum of place indices ($b = 0$, $d = 1$, $g = 2$) is $\le 2$, and
+$S_c = \{1,2,3\}$ (code $\{0,1,2\}$ = jaw, body, dorsum) otherwise.
+Hence /bb/, /bd/, /bg/, /db/, /dd/, /gb/ use $\{1,2,3,6\}$ and /dg/,
+/gd/, /gg/ use $\{1,2,3\}$. The article's rule --- $\{1,2,3,6\}$ for
+clusters containing /b/ (e.g.\ /gb/), $\{1,2,3,4\}$ otherwise --- differs
+from the engine's for the four pairs /dd/, /dg/, /gd/, /gg/. The engine's
+rule is inherited from the 2023 lineage: both original engines implement
+the same threshold rule; the article's /b/-conditional rule was never
+implemented in the family. The /g/ is systematically palatal when in a
+cluster (see the Differential Supplement, \S4, rows~4 and~4a).
 
 \begin{figure}[h]
 \centering
@@ -1298,6 +1313,14 @@ branch $z_c$ (blue) visits both consonant targets in sequence.}
 \includegraphics[width=\textwidth]{figures/demo5/cluster_spectrograms.png}
 \caption{Spectrograms for the six cluster pairs.}
 \end{figure}
+
+\textbf{Labels note.} The $S_c$ annotations in the figures above are
+derived at runtime from the engine
+(\texttt{synthSYL.phonology.cluster\_art\_params}, article numbering) and
+match the rule paragraph above; the trajectories are unaffected. The
+spectrogram titles carry no $S_c$ label. See the Differential
+Supplement, \S4 row~4 and Corrigendum~3, for the history of the earlier
+legacy labels.
 
 % ════════════════════════════════════════════════════════════════
 % Section 11.6: Figure 4 (article format)

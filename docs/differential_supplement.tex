@@ -1,0 +1,946 @@
+% SPDX-License-Identifier: MIT
+% ----------------------------------------------------------------------------
+% Implementation Differential and Provenance Supplement
+% Companion to the didactic manual (docs/manual.pdf) of big.bi-supplement.
+% Standalone document, independent pagination (bound after the manual).
+% Prepared October 2026 by the automated audit agent; author: F. Berthommier.
+% ----------------------------------------------------------------------------
+\documentclass[11pt,letterpaper]{article}
+
+% ── Packages ──
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{adjustbox}
+\usepackage{tcolorbox}
+\usepackage{fancyhdr}
+\usepackage[colorlinks=true,linkcolor=blue!60!black,citecolor=blue!50!black,urlcolor=blue!70!black,bookmarks=true,bookmarksnumbered=true]{hyperref}
+
+\tcbuselibrary{breakable}
+
+\hypersetup{
+    pdftitle={Implementation Differential and Provenance Supplement — big.bi-supplement vs arXiv:2307.02299},
+    pdfauthor={F. Berthommier (prepared by automated audit agent)},
+    pdfsubject={Differential between the 2023 article parameters and the 2026 Python engine},
+    pdfkeywords={articulatory synthesis, Maeda model, VLAM, synthSYL, provenance, reproduction}
+}
+
+% ── Page style ──
+\setlength{\headheight}{14.5pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\itshape Implementation Differential \& Provenance Supplement --- big.bi-supplement}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% ── Layout guards (no overfull boxes, no orphan lines) ──
+\widowpenalty=10000
+\clubpenalty=10000
+\tolerance=2000
+\emergencystretch=3em
+
+% ── Shorthand ──
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\Mua}{M.u.}
+
+% ── Boxes ──
+\newtcolorbox{qbox}[1]{%
+    colback=black!4, colframe=black!50, boxrule=0.4pt, arc=1.5pt,
+    left=7pt, right=7pt, top=5pt, bottom=5pt,
+    title={#1}, fonttitle=\bfseries\small, coltitle=white, colbacktitle=black!75,
+    breakable, before upper={\raggedright}}
+\newtcolorbox{pastebox}[1]{%
+    colback=black!3, colframe=black!60, boxrule=0.7pt, arc=1.5pt,
+    left=7pt, right=7pt, top=5pt, bottom=5pt,
+    title={#1}, fonttitle=\bfseries\small, coltitle=white, colbacktitle=black!80,
+    breakable, before upper={\raggedright}}
+
+\begin{document}
+
+% ════════════════════════════════════════════════════════════════════════════
+% Title block (compact; the document is bound after the manual)
+% ════════════════════════════════════════════════════════════════════════════
+\begin{center}
+{\LARGE\bfseries Implementation Differential and Provenance Supplement}\\[5pt]
+{\large From the 2023 article (MATLAB era) to the 2026 Python engine}\\[9pt]
+{\small Companion to the didactic manual (\code{docs/manual.pdf}) --- repository
+\code{big.bi-supplement},\\ commit \code{4a0d76290aee}, DOI 10.5281/zenodo.23239483}\\[4pt]
+{\small October 2026}\\[3pt]
+{\small\itshape Documentation supplement --- no engine code is changed.}
+\end{center}
+\vspace{2pt}
+\noindent\rule{\textwidth}{0.6pt}
+\vspace{4pt}
+
+\tableofcontents
+\vspace{6pt}
+
+\section{Purpose and reading guide}
+
+The didactic manual of this repository explains how to reproduce the
+demonstrations of Berthommier (2023) with the Python engine shipped in
+\code{big.bi-supplement}. This supplement answers the question that precedes
+reproduction: \emph{which} parameter values and assembly rules implemented in
+the 2026 engine differ from those published in the 2023 article, \emph{where}
+each difference lives in the code, \emph{what} it changes numerically in the
+simulations, and \emph{why} the published demonstrations are nevertheless
+reproduced. It is the documentation-level fix recommended by the independent
+compliance audit \hbox{[AUD]}; it proposes and implies no engine code change.
+
+Every factual claim carries a source tag:
+\begin{itemize}\itemsep1pt\parsep0pt
+  \item \textbf{[A \S x]} --- the 2023 article, F.\,Berthommier,
+        ``Why can big.bi be changed to bi.gbi? A mathematical model of
+        syllabification and articulatory synthesis'', arXiv:2307.02299
+        (Interspeech 2023), section \S x;
+  \item \textbf{[M l.n]} --- the didactic manual, \code{docs/manual.tex}
+        (29-page PDF at the same commit), line n;
+  \item \textbf{[R file:line]} --- the repository engine or scripts at commit
+        \code{4a0d76290aee};
+  \item \textbf{[AUD]} --- the 104-test compliance audit report (Oct.\ 2026);
+  \item \textbf{[D5]} --- the difference-5 effect report (Oct.\ 2026),
+        the follow-up experiment summarized in \S5 below;
+  \item \textbf{[EXT \S x]} --- the external comparative audit of the
+        consonant selection vectors $C \in \{$b, d, g$\}$ in the two original
+        engines, October 13, 2026, reference [6].
+\end{itemize}
+
+Section \S7 issues three \emph{corrigenda}: two factually wrong statements of
+the manual, superseded by the replacement texts given there, and one family of
+wrong labels in the demonstration figures generated by the repository's own
+figure generator. No other part of the manual is affected.
+The intended audience is researchers who reproduce, extend, or cite the
+demonstrations.
+
+Two conventions. First, Maeda parameter indices are 1-based in the article and
+the manual and 0-based in the code; article $\{1,2,6\}$ = code $\{0,1,5\}$
+(Jaw, Body, LipH), and the seven parameters are Jaw, Body, Dorsum, Tip, LipP,
+LipH, Hy \hbox{[R \code{synthSYL/constants.py:19}]}. Second, magnitudes are
+expressed in \emph{Maeda units} (\Mua), the natural units of the 7-parameter
+articulatory flow $P(t)$.
+
+\section{Provenance and versions}
+
+\textbf{Lineage (author-asserted).} The 2023 article's demonstrations were
+produced with the author's \textsc{matlab} implementation. The engine shipped
+in this repository is Python: it descends from the author's
+\code{timit-to-Maeda} package (``the original synthSYL'') and was reworked
+during 2026 to produce every demonstration presented here --- videos, HTML
+simulations, article-format figures, and the manual itself. The
+\textsc{matlab} source is not part of the audited corpus, and this supplement
+makes no claim about its internals; everything published is attributed to the
+article. The verifiable axis of this document is therefore:
+\emph{values and rules published in the article (2023 era)} $\leftrightarrow$
+\emph{values and rules implemented in the engine (2026 era)}
+\hbox{[AUD; R]}.
+
+\textbf{What ``verbatim from the original code'' means.} The engine registry
+opens with this statement:
+\begin{qbox}{\code{synthSYL/constants.py:6--8} (verbatim)}
+\small
+``All magic numbers from the original monolithic plugin are replaced by
+descriptively-named constants here. Every value is taken verbatim from the
+original code so that numerical identity is preserved.''
+\end{qbox}
+\noindent ``The original code'' designates the pre-existing Python engine
+(\code{timit-to-Maeda}), \emph{not} the article. Registry inheritance therefore
+guarantees numerical identity with the Python lineage --- and that lineage does
+not coincide everywhere with the values printed in the article. This
+ambiguity is one of the gaps the present supplement resolves. Throughout
+\S4, every non-article engine value is labelled either
+\emph{registry inheritance} (carried over verbatim from
+\code{timit-to-Maeda}, per the quote above) or \emph{author ruling (dated)}.
+Two rulings are documented in the code: the word-onset anchoring rule,
+author-validated 2026-10-06 \hbox{[R \code{synthSYL/gesture.py:399--406}]},
+and \code{VALRECT} $= 1.10$, ruled 2026-10-07
+\hbox{[R \code{config.py:43--46}]}.
+
+\textbf{The 2026 rework, as documented.} The README section ``Key
+Modifications to the Original synthSYL'' lists four items
+\hbox{[R README]}: (1)~\code{delta\_o} and \code{delta\_e} added as pipeline
+kwargs; (2)~the syllable-onset anchor at a `.' C.C boundary weighted by
+\code{COEFCEN} (the previous vowel weighted by the chaining coefficient);
+(3)~the Vo formula corrected to $\delta_o\cdot\rho_V$ (matching the article);
+(4)~non-initial word onsets anchored on the previous Ve. Items~1 and~3 conform
+to the article's formulas \hbox{[A \S2.2]}; item~2 is the inter-syllable
+chaining mechanism of the demonstrations; item~4 is difference~5 of \S4 below
+--- the README documents the rule and its motivation, but not its divergence
+from a literal reading of the article nor the conditions under which the two
+readings coincide (\S5).
+
+\textbf{Version pinning.} Repository \code{big.bi-supplement}, commit
+\code{4a0d76290aee}, MIT license, DOI 10.5281/zenodo.23239483 \hbox{[R]}.
+The manual (\code{docs/manual.pdf}, 29 pages) and all shipped artifacts were
+produced at this commit.
+
+\begin{qbox}{Summary statement [AUD]}
+\small
+The engine faithfully implements the article's equations, but its parameters
+are not exactly those of the 2023 article; the differences are catalogued in
+\S4, and none of them is an equation-level change.
+\end{qbox}
+
+\section{The model as published (2023 reference)}
+
+The model plans formant trajectories directly in the complex plane. Targets
+are polar points $(\rho,\theta)$; the \emph{coordination function} (article
+Eq.~1) maps a target to the 7 Maeda parameters,
+\begin{equation}
+P_i \;=\; \Omega_i \;+\; \rho \cdot \Psi_{1,i} \cdot
+\cos\!\left(\Psi_{2,i} - \theta\right),
+\label{eq:coordination}
+\end{equation}
+where $\Omega$, $\Psi_1$, $\Psi_2$ are per-parameter calibration constants
+(article Table~1) \hbox{[A \S2.1]}. Motion between two targets follows a
+circular arc in the plane (article Eqs.~2--3) with curvature $K$ and the
+cosine velocity profile $\rho(t)=\cos(\theta/2)$ with $P_{\text{exp}}=1$
+\hbox{[A \S2.1]}. Superposition (article Eq.~4) is selection-based: at every
+instant each segment activates a consonant set $S_c$ and a vowel set $S_v$ of
+the 7 Maeda parameters \hbox{[A \S2.1--2.2]}.
+
+\textbf{Published settings} \hbox{[A \S2.1]}: $K_{\text{voy}} = 30$ (vowel
+arcs), $K = 10$ (consonant arcs), $T = 16$ steps per syllabic period in
+didactic mode (1 step $=$ 10~ms, so $T = 160$~ms), $\nu = -1$,
+$P_{\text{exp}} = 1$.
+
+\textbf{Anchoring vowels and pauses} \hbox{[A \S2.2]}:
+\begin{qbox}{Article \S2.2 --- anchoring vowels (Q1, verbatim [A])}
+\small\itshape
+``When they are absent, they can be far from the neutral vowel (with $\rho=0$
+and $P=\Omega$) and they have the same $\theta$ as the closest vowel but
+$\rho$ is multiplied by specific coefficients $\delta_o$ and $\delta_e$
+(which will be set later). Thus, we have $V_o=(\delta_o.\rho_V,\theta_V)$ and
+$V_e=(\delta_e.\rho_V,\theta_V)$.''
+\end{qbox}
+\begin{qbox}{Article \S2.2 --- pause (Q2, verbatim [A])}
+\small\itshape
+``the pause is defined as the lack of concatenation and coarticulation between
+two syllables. This is consistently defined as a diphthong transition between
+the previous $V_e$ and the next $V_o$ with an arbitrary duration $T_p$.''
+\end{qbox}
+\noindent The article's demonstrations use $\delta_o=\delta_e=\delta$
+throughout, with three published settings: $\delta=0.5$ (salient schwa),
+$\delta=0.7$ (audible schwa), and $\delta=1$ (fusion, article Figure~4)
+\hbox{[A \S2.2, \S4]}:
+\begin{qbox}{Article \S4 --- audible schwa (Q3, verbatim [A])}
+\small\itshape
+``the graphs of /big/ and /bi/ are concatenated with $\delta_o=\delta_e=0.7$
+to insert an audible schwa-like vocoid between the two consecutive
+consonants.''
+\end{qbox}
+
+\textbf{Published consonant positions and selections} \hbox{[A \S3]}:
+/b/ at $(\rho_b{=}1,\ \theta_b{=}\pi/3)$ with $S_c=\{1,2,6\}$; /d/ around
+$(\rho_d{=}1.2,\ \theta_d{=}3\pi/2)$ with $S_c=\{1,2,3,4\}$; /g/ velar at
+$(1.2, \pi/3)$ and palatal at $(1.1,\ 23\pi/12)$ with $S_c=\{1,2,3,4\}$
+(the /g/ is velar for back vowels, palatal for front vowels; the /d/ position
+depends slightly on the following vowel). Corner vowels are published at
+$\rho = 1$, and the calibration method is stated openly: the model's
+parameters ``can be adjusted manually by simple hearing'' \hbox{[A \S1]}, and
+``[t]he tuning of /b,d,g/ has been realised by hearing at first''
+\hbox{[A \S3]}. For consonant clusters:
+\begin{qbox}{Article \S3 --- cluster selection (verbatim [A];
+checked against the arXiv rendering for this supplement)}
+\small\itshape
+``[T]he tuning of the six pair clusters of /b,d,g/ follows the same
+principle, but there is a special grouping of articulators when /b/ is
+involved in the pair. In this case $S_c=\{1,2,3,6\}$ and otherwise this is
+$S_c=\{1,2,3,4\}$.''
+\end{qbox}
+
+\textbf{Published demonstration} \hbox{[A \S4]}: \code{big.bi} transforms
+into \code{bi.gbi} as $\delta \to 1$; the gain of consonant clustering is one
+period $T = 160$~ms. The article's supplement demonstrates
+\code{ib\,ib} $\to$ \code{bi\,bi}. Article Figure~3 reports nominal locus
+slopes $\approx 0.70$ (/b/), $0.55$ (/d/), $2.0$ (/g/ velar), and $0.75$
+(/g/ palatal).
+
+\section{The differential}
+
+Table~\ref{tab:master} is the central exhibit of this supplement: one row per
+difference between the article-published values/rules and the engine at
+commit \code{4a0d76290aee}. Row~1 carries two entries (1 and 1b): both lie in
+the Tip row of the coordination matrix. Paragraphs after the table give each
+row's origin, effect, and current documentation status. The two manual
+statements quoted in \S7 are superseded by the corrigenda there.
+
+\begin{table}[htbp]
+\centering
+\caption{Master differential --- article (2023) vs engine (2026), commit
+\code{4a0d76290aee}. Indices are 1-based in article numbering unless a code
+vector is shown. \Mua{} = Maeda units. Code paths are relative to the repository root:
+\code{constants.py}, \code{phonology.py}, \code{gesture.py},
+\code{trajectory.py} and \code{polar.py} are under \code{synthSYL/};
+\code{config.py} is at the root.}
+\label{tab:master}
+\scriptsize
+\begin{adjustbox}{max width=\textwidth,center}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.75cm}
+                >{\raggedright\arraybackslash}p{1.45cm}
+                >{\raggedright\arraybackslash}p{2.85cm}
+                >{\raggedright\arraybackslash}p{3.25cm}
+                >{\raggedright\arraybackslash}p{2.15cm}
+                >{\raggedright\arraybackslash}p{3.25cm}
+                >{\raggedright\arraybackslash}p{1.95cm}@{}}
+\toprule
+\textbf{\#} & \textbf{Item} & \textbf{Article (2023)} & \textbf{Engine (2026)}
+& \textbf{Code [R]} & \textbf{Quantified effect} & \textbf{Doc.\ status} \\
+\midrule
+1/1b & CO Tip row ($\Omega$, $\Psi_1$) & $\Omega=0$; $\Psi_1=-3$ (Table~1)
+& $\Omega=0.5$; $\Psi_1=-2.75$ (registry inheritance)
+& constants.py: 28 & up to 0.70 \Mua{} on Tip for /d/, /g/ (arc
+/d/$\to$/a/); zero for /b/, /gb/ [AUD] & omitted --- manual states a
+different claim (Corr.~1) \\
+2 & $\theta_{\text{dental}}$ & $3\pi/2$ (\S3) & $23\pi/16$
+($\Delta=\pi/16=11.25^{\circ}$) & constants.py: 46 & reproduction scripts
+restore the article value (\S6) & absent \\
+3 & Radii & $\rho_b=1$; corner vowels $\rho=1$ (\S1, \S2.1)
+& $\rho_b=1.2$; /i/ $=0.9$; /a/ $=0.8$ (recalibration by ear)
+& constants.py: 74, 77, 79 & Body peak $+1.50$ vs $+1.25$ at $\rho_b=1.0$
+(manual ablations) [M l.870--872, l.1148--1154] & $\rho_b$ documented; vowel
+radii not flagged [M l.276--277] \\
+4 & Cluster selection $S_c$ & /b/-clusters $\to \{1,2,3,6\}$; otherwise
+$\{1,2,3,4\}$ (\S3) & place-index sum ($b{=}0$, $d{=}1$, $g{=}2$): $\le 2
+\to \{1,2,3,6\}$; $>2 \to \{1,2,3\}$ (article numbering; verified by
+execution)
+& phonology.py: 337--341; constants.py: 89--92 & 4 of 9 /b,d,g/ pairs
+diverge (dd, dg, gd, gg); /gb/ conforms [AUD] & wrong --- manual documents
+the article's rule (Corr.~2); ancestral [EXT] \\
+5 & Word-onset anchoring & literal reading: $V_{o,2}=(\delta_o\,\rho_{V_2},
+\theta_{V_2})$ (\S2.2) & $V_{o,2}:=(\delta_e\,\rho_{V_1},\theta_{V_1})$
+(author ruling 2026-10-06) & gesture.py: 385--432 & 0 (bitwise) on all 6
+published configurations; up to 2.0812 \Mua{} outside them [D5] & partial
+(README item~4) \\
+6 & VALRECT (soft rectification) & not published & 1.10 (historical
+timit-to-Maeda value 0.75; author ruling 2026-10-07) & config.py: 43--46 &
+locus-slope effect $\le 0.23$ (/g/ velar), $\le 0.014$ (/b/, /d/) [AUD] &
+well documented \\
+7 & Structural conventions (family) & not described as such & opint $=-1$
+(first sample dropped at releases); plateaus as constant blocks; terminal
+anchors $[0,0]$; parametrised $T_p$; 3-consonant extension; display arcs
+$\cos^2(\theta/2)$; F2 offset 3 steps & polar.py: 43--51;
+trajectory.py: 56; gesture.py: 487--491; config.py: 47--49 & joint sampling
+jump 0.41 \Mua{} (analytic, $D=16$); display-arc gap $\approx 0.12$ [AUD] &
+partial (display side in manual \S6; engine side not presented as
+conventions) \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+
+\medskip
+\begin{minipage}{\textwidth}
+\scriptsize\raggedright
+Note (row 3): further registry values have \emph{no} article counterpart, so
+they cannot differ from a published value --- the cluster-context angles
+\code{THETA\_CC\_D} $=-2.5\pi/6$ and \code{THETA\_CC\_G} $=-\pi/12$ and the
+cluster-velar radius \code{RHO\_CLUSTER\_VELAR} $=1.1$
+\hbox{[R constants.py:53--55, 81]}.
+\end{minipage}
+\end{table}
+
+\paragraph{Row 1/1b --- coordination matrix, Tip row (registry inheritance).}
+The engine stores each row as $[\Psi_1,\Omega,\Psi_2]$
+\hbox{[R constants.py:21--33]}; the Tip row is $[-2.75,\;0.5,\;\pi]$
+\hbox{[R constants.py:28]}, against the article's $\Omega=0$, $\Psi_1=-3$
+(Table~1) [A]: \emph{both} constants differ. Quantified by the audit: up to
+0.70 \Mua{} on Tip for /d/ and /g/ (measured on the arc /d/$\to$/a/), and
+zero for /b/ and /gb/, whose selection vectors exclude Tip \hbox{[AUD]}. This
+row is the audit's single non-conformity, of severity below P0 \hbox{[AUD]}.
+Substituting the article's Table~1 matrix into the engine (a counterfactual
+run) yields identity on all seven parameters \hbox{[AUD]}, so no other row
+deviates. Documentation status: omitted --- the manual asserts a different
+(single-entry) difference; superseded by Corrigendum~1 (\S7).
+
+\paragraph{Row 2 --- dental angle (registry inheritance).}
+\code{THETA\_DENTAL} $=23\pi/16$ versus the article's $3\pi/2$:
+$\Delta = \pi/16 = 11.25^{\circ}$
+\hbox{[R constants.py:46; A \S3]}. The locus and trough demonstration scripts
+explicitly restore the article value before measuring
+{[R \code{scripts/}\allowbreak\code{run\_locus\_trough\_demos.py:206--216}]}, so the
+published-slope demonstrations are computed at the article's angle (\S6).
+This difference is absent from the manual and from code comments.
+
+\paragraph{Row 3 --- radii (recalibration by ear; registry inheritance).}
+Engine: $\rho_b = 1.2$ \hbox{[R constants.py:74]}, /i/ $=0.9$
+\hbox{[R constants.py:77]}, /a/ $=0.8$ \hbox{[R constants.py:79]}; article:
+$\rho_b = 1$, corner vowels $\rho = 1$ \hbox{[A \S1, \S2.1, \S3]}. The
+divergence is consistent with the article's own calibration method
+(``by simple hearing'' \hbox{[A \S1]}): the 2026 registry is a later state of
+the same ear-tuned constants. Quantified: the manual's trough ablations
+measure the /ibi/ Body peak at $+1.50$ with $\rho_b=1.2$ and $+1.25$ with the
+article's $\rho_b=1.0$ (plateau $-2.25$ in both cases)
+\hbox{[M l.870--872; M l.1148--1154]}. Documentation status: $\rho_b$ is
+documented (the demo scripts set it explicitly and the manual discusses both
+values); the vowel radii (0.9 and 0.8 vs published 1) are not flagged as
+deviations --- the manual states them without comment \hbox{[M l.276--277]}.
+
+\paragraph{Row 4 --- cluster selection (registry inheritance).}
+Engine rule: for a two-consonant cluster, sum the place indices of the two
+consonants (b, p, m, f, v $=0$; d, t, n, s, z $=1$; g, k $=2$; \dots) and
+select $\{0,1,2,5\}$ when the sum is $\le 2$, $\{0,1,2\}$ when it is $>2$
+\hbox{[R phonology.py:133--141, 337--341; constants.py:89--92]}. Executed on
+the nine /b,d,g/ pairs for this supplement, the rule returns
+$\{1,2,3,6\}$ (article numbering) for /bb/, /bd/, /bg/, /db/, /dd/, /gb/ and
+$\{1,2,3\}$ for /dg/, /gd/, /gg/ \hbox{[R]}. The article's rule is
+/b/-involvement (\S3, quote above): $\{1,2,3,6\}$ when /b/ is in the pair,
+$\{1,2,3,4\}$ otherwise \hbox{[A \S3]}. Divergence: 4 of the 9 pairs
+(/dd/, /dg/, /gd/, /gg/); /gb/ --- the cluster of the article's
+demonstration --- conforms; among the six pairs listed in the article, /dg/
+and /gd/ diverge \hbox{[AUD]}. The singleton selections do conform (/d/ and
+/g/ activate $\{1,2,3,4\}$) \hbox{[R phonology.py:303--304; A \S3]}.
+Documentation status: wrong in the manual --- the Demo~4 table and rule
+paragraph present the article's rule as the engine's; superseded by
+Corrigendum~2 (\S7).
+
+\paragraph{Row 4a --- lineage of the cluster rule (external evidence) [EXT].}
+The external note [6] compares the two original engines, \code{timit-to-Maeda}
+and \code{Syllable\_Synthesis}; it never opens the article and never tests this
+repository. Its findings: the isolated-consonant selectors ``are identical
+after index conversion'' [EXT \S2.3]; the binary-cluster masks are identical
+--- art1 rows \{0,\,1,\,2,\,5\} / \{0,\,1,\,2\} (the duplicated Jaw entry is
+inert) coincide with \code{timit-to-Maeda}'s \code{ART\_CLUSTER} --- ``The
+masks are therefore identical'' [EXT \S3.1]; the index rule is the same in
+both engines, \code{art\_idx = 1[idx\_c1 + idx\_c2 > 2]} --- ``The decision
+rule is the same'' [EXT \S3.2], with the same partition
+\{bb, bd, db, bg, gb, dd\} vs.\ \{dg, gd, gg\}; the engines differ only in
+trigger logic (enumerated syllable patterns vs.\ generic $m \in \{2,3\}$), in
+three-consonant support, and in polar-target formulas for /d/ and /g/
+[EXT \S9].
+
+\emph{Chain of custody.} The note's \code{timit-to-Maeda} excerpts
+(\code{\_CONSONANT\_ENTRIES}, \code{ART\_CLUSTER},
+\code{cluster\_art\_params}) match this repository byte-for-byte at
+\code{constants.py:89--92} and \code{phonology.py:337--341}, :173--180,
+modulo one cosmetic character (uvular key: IPA turned-r glyph in the
+repository, ASCII R in the excerpt). The engine-versus-engine identity
+therefore extends to the 2026 repository at the selector layer.
+
+\emph{Genealogical conclusion.} Because the threshold rule and both masks are
+shared by the two 2023 engines, the non-article selector rule is
+\emph{ancestral}: it belongs to the 2023 lineage, and the article's
+/b/-conditional rule was never implemented in any engine of the family. The
+2026 rework did not introduce it.
+
+\emph{Reserve on the note.} Its two ``residual differences'' for the isolated
+/d/ and /g/ polar targets are identical modulo $2\pi$
+($-9\pi/16 + 2\pi = 23\pi/16$; $-\pi/12 + 2\pi = 23\pi/12$) --- a notational,
+not numerical, difference [EXT \S5].
+
+\paragraph{Row 4b --- scope of the divergence.}
+\emph{Results cited in the article: none affected.}
+(i)~Isolated consonants /b/, /d/, /g/ (\S3 of the article; its Figures~1
+and~3): the engine's selectors conform --- /b/ $\to \{1,2,6\}$; /d/, /g/
+$\to \{1,2,3,4\}$ \hbox{[R phonology.py:173--180, :303--304]}.
+(ii)~The article's CC-pair text (\S3) is descriptive only: it publishes no
+number and no figure for the pairs. (iii)~\S4 and Figure~4
+(\code{big.bi} $\leftrightarrow$ \code{bi.gbi}): the only cluster the article
+uses is /gb/, with $S_c = \{1,2,3,6\}$ --- conform, and validated end-to-end
+by the audit (cluster pair /gb/: test C.4b $\le 2.2\cdot10^{-15}$; Eq.~(4)
+end-to-end $\le 4.4\cdot10^{-15}$) \hbox{[AUD]}. The intersection of the
+divergent pairs \{dd, dg, gd, gg\} with the article's cited results is empty.
+
+\emph{Extended CC simulations of the supplement: affected.} Demo~5 synthesizes
+six CVCCV utterances abda, abga, adba, adga, agba, agda
+\hbox{[R run\_article\_demos.py:296--304]}. Exactly two run on a divergent
+pair: \code{adga} (/dg/) and \code{agda} (/gd/) --- synthesized with
+$S_c = \{1,2,3\}$ instead of the announced $\{1,2,3,4\}$, and their published
+panel labels display the wrong vector (Corrigendum~3). All other
+demonstrations (\code{big.bi}, \code{bi.gbi}, Demo~1 /ibia/, locus runs) are
+untouched.
+
+\paragraph{Row 5 --- word-onset anchoring across a pause
+(author ruling 2026-10-06).}
+Treated in depth in \S5. Effect: exactly 0 (bitwise) on all six published
+configurations; up to 2.0812 \Mua{} outside them \hbox{[D5]} --- the largest
+quantified deviation of the audit. Documentation status: partial --- README
+item~4 and the in-code docstring state the rule and its motivation; the
+divergence from a literal reading of the article and the conditions under
+which the two readings coincide are stated for the first time in this
+supplement.
+
+\paragraph{Row 6 --- VALRECT, soft rectification (author ruling 2026-10-07).}
+The article publishes no such setting; the engine applies
+\begin{qbox}{\code{config.py:43--46} (comment; line breaks removed)}
+\small
+\code{VALRECT = 1.10 \# VLAM soft-rectification (author ruling 2026-10-07,
+reduces the perceived fizz on /i/; historical canonical value from
+timit-to-Maeda: 0.75; applied to the area function, not to articulatory
+params)}
+\end{qbox}
+\noindent Quantified by the audit: locus-slope effect $\le 0.23$ (/g/ velar)
+and $\le 0.014$ (/b/, /d/) \hbox{[AUD]}. Well documented: the config comment,
+manual \S7.2 \hbox{[M l.721--726]} and the Demo~2 note \hbox{[M l.967--968]},
+and the README headline table. One refinement: those documents call 0.75
+``the article's canonical value''; per the audit the article publishes no
+VALRECT --- 0.75 is the historical \code{timit-to-Maeda} default, which the
+2026 ruling raises to 1.10 \hbox{[AUD; R config.py:43--46]}.
+
+\paragraph{Row 7 --- structural conventions (family; registry inheritance).}
+Not differences of published values but conventions of the Python engine that
+the article does not describe as such: the first sample of each block is
+dropped at releases (interpolation mode \code{opint} $=-1$)
+\hbox{[R polar.py:43--51; projection.py:45--52]}; vowel and consonant
+plateaus are materialized as constant blocks (\code{np.tile})
+\hbox{[R trajectory.py:56]}; utterance edges carry terminal anchors $[0,0]$
+\hbox{[R gesture.py:487--491]}; pause durations $T_p$ are parametrised; a
+three-consonant cluster extension exists with no article counterpart
+\hbox{[R phonology.py:342--352]}; the polar \emph{display} draws arcs with a
+$\cos^2(\theta/2)$ profile while the engine uses $\cos(\theta/2)$
+\hbox{[R polar\_primitives.py; M \S6]}; and the locus measurement samples F2
+30~ms after release (\code{LOCUS\_OFFSET\_STEPS} $=3$)
+\hbox{[R config.py:47--49]}. Joint effect of the sampling-side conventions:
+an analytic 0.41 \Mua{} jump at block joints ($D=16$); display-vs-engine arc
+gap $\approx 0.12$ \Mua{} \hbox{[AUD]}. Documentation status: partial --- the
+display conventions are documented (manual \S6, ``Polar Trajectory
+Reconstruction''); the engine-side conventions (plateau blocks, \code{opint},
+the 0.41 \Mua{} jump) are not presented as conventions.
+
+\medskip
+\noindent\textbf{Ranking at trajectory level.} Outside the published grid,
+the differences rank: word-onset rule 2.08 $>$ CO Tip row 0.70 $>$ joint
+sampling jump 0.41 $>$ display-arc gap 0.12 \Mua{} \hbox{[AUD; D5]}. Inside
+the published grid, rows 1, 3, 6 and 7 act at their quantified magnitudes
+while row~5 is exactly zero (\S5).
+
+\section{Focus: word-onset anchoring across a pause}
+
+\textbf{The two readings.} The article defines the pause as a diphthong
+transition between the previous $V_e$ and the next $V_o$ (Q2), with
+$V_o = (\delta_o\,\rho_V, \theta_V)$ anchored on ``the closest vowel'' (Q1)
+\hbox{[A \S2.2]}. For a non-initial word that begins with a consonant after a
+pause, two readings of ``closest vowel'' --- and of the scaling coefficient
+--- are possible:
+\begin{center}
+\begin{minipage}[t]{0.485\textwidth}
+\begin{qbox}{Engine rule (2026) [R gesture.py:385--432]}
+\small
+$V_{o,2} \;:=\; (\delta_e \cdot \rho_{V_1},\; \theta_{V_1})$
+\\[3pt]
+The onset anchors on the \emph{previous} word's $V_e$ point, scaled by the
+\emph{end} coefficient $\delta_e$.
+\\[3pt]
+Author-validated 2026-10-06 (docstring Q6 below).
+\end{qbox}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.485\textwidth}
+\begin{qbox}{Article-literal reading (2023) [A \S2.2]}
+\small
+$V_{o,2} \;=\; (\delta_o \cdot \rho_{V_2},\; \theta_{V_2})$
+\\[3pt]
+The onset anchors on the word's \emph{own} closest vowel, scaled by the
+\emph{onset} coefficient $\delta_o$, as at an utterance-initial word.
+\end{qbox}
+\end{minipage}
+\end{center}
+
+\begin{qbox}{\code{synthSYL/gesture.py:399--406} --- docstring (Q6, verbatim)}
+\small
+``Non-initial word (after a pause): the pause is the diphthong transition
+between the PREVIOUS $V_e$ and the next $V_o$ (article \S2.2), so the onset
+anchors on the previous word's $V_e$ point --- $V_o := (\delta_e \cdot
+\rho_{\text{prev}}, \theta_{\text{prev}})$. Consequences: with
+$\text{COEFCEN} = 1$ ($\delta_e = 1$, $V_e = V$) the word-2 onset departs
+from the FULL vowel and there is no return to the half-radius schwa at the
+word boundary; with the symmetric $\delta_o = \delta_e$ the value is
+unchanged (0.45 for /i/), preserving the `big@bi' schwa demonstrations.
+(Author-validated 2026-10-06.)''
+\end{qbox}
+
+\textbf{Coincidence lemma.} The two readings produce the same anchor if and
+only if
+\begin{equation}
+\delta_e\,\rho_{V_1} \;=\; \delta_o\,\rho_{V_2}
+\qquad\text{and}\qquad
+\theta_{V_1} \equiv \theta_{V_2} \pmod{2\pi}.
+\label{eq:coincidence}
+\end{equation}
+\emph{Corollary.} At the published conditions --- the article always sets
+$\delta_o=\delta_e=\delta$, and the demonstrations place the same vowel on
+both sides of the pause --- both conditions hold identically, so the two
+readings coincide exactly. For \code{bi\,bi} with the engine's /i/
+($\rho=0.9$, $\theta=5\pi/3$): both readings give $V_{o,2} = (0.45,
+5\pi/3)$ at $\delta=0.5$, $(0.63, 5\pi/3)$ at $\delta=0.7$, $(0.90,
+5\pi/3)$ at $\delta=1.0$ \hbox{[R; M \S4]}.
+
+\textbf{Structural argument.} The single-word utterances \code{big.bi} and
+\code{bi.gbi} contain no non-initial word onset at all: their internal `.`
+boundary is an inter-syllable boundary governed by the chaining rule (README
+item~2, the \code{COEFCEN}-weighted `.' C.C anchor), an assembly rule
+identical under both readings. The number of divergent application sites in
+these demonstrations is therefore zero for structural reasons, independently
+of the lemma \hbox{[D5]}.
+
+\textbf{The D5 experiment.} Each case was run twice through the complete
+pipeline, identical except for \code{\_insert\_vowel\_onset\_anchors}
+(engine rule vs literal rule); the table reports the maximum absolute
+difference of the 7-parameter flow \hbox{[D5]}:
+
+\begin{table}[htbp]
+\centering
+\caption{Difference-5 experiment: engine rule vs article-literal rule at the
+published conditions ($\delta_o=\delta_e=\delta$) and at one control outside
+them. max $|\Delta P|$ over the 7 Maeda parameters and the whole utterance
+[D5].}
+\label{tab:d5}
+\footnotesize
+\begin{adjustbox}{max width=\textwidth,center}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.7cm}
+                >{\raggedright\arraybackslash}p{1.9cm}
+                >{\raggedright\arraybackslash}p{1.55cm}
+                >{\raggedright\arraybackslash}p{2.1cm}
+                >{\raggedright\arraybackslash}p{2.6cm}
+                >{\raggedright\arraybackslash}p{4.1cm}@{}}
+\toprule
+\textbf{Utterance} & $\boldsymbol\delta$ & \textbf{Onset sites} &
+\textbf{Divergent branch} & \textbf{max $|\Delta P|$ (\Mua)} &
+\textbf{Reading} \\
+\midrule
+bi bi & 0.5 & 2 & 1 (non-initial word) & 0 (exact, bitwise) &
+coincidence (lemma~\eqref{eq:coincidence}) \\
+bi bi & 0.7 & 2 & 1 (non-initial word) & 0 (exact) & coincidence (lemma) \\
+bi bi & 1.0 & 2 & 1 (non-initial word) & 0 (exact) & coincidence (lemma) \\
+big.bi & 0.7 & 1 & 0 & 0 (exact) & structural (no site) \\
+big.bi & 1.0 & 1 & 0 & 0 (exact) & structural (no site) \\
+bi.gbi & 1.0 & 1 & 0 & 0 (exact) & structural (no site) \\
+control: ``big ba'' & $\delta_o{=}0.5$, $\delta_e{=}0.7$ & 2 & 1 &
+\textbf{2.0812} & divergence \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\textbf{The control in detail.} For \code{big\,ba} with $\delta_o = 0.5$,
+$\delta_e = 0.7$, the two anchors split: the engine rule gives $(0.63,
+5\pi/3)$ --- $\delta_e \cdot 0.9$ on the previous /i/ --- while the literal
+rule gives $(0.40, \pi)$ --- $\delta_o \cdot 0.8$ on the word's own /a/; the
+polar gap is $\Delta\rho = 0.23$ and 1.73~rad on the unit circle (matching
+audit test D.6 \hbox{[AUD]}). Per-parameter maxima: Body 2.0812 (at
+$t = 129$ steps $\approx 1.29$~s), Tip 1.99, LipH 1.81, Jaw 1.08, while
+Dorsum, LipP and Hy remain at 0.23--0.35; word~1 is untouched
+($\Delta P = 0$ for $t < 112$ steps) \hbox{[D5]}. The four strongly affected
+parameters are the consonant selection of the /b/, $S_c = \{1,2,6\}$ = Jaw,
+Body, LipH, together with Tip from the vowel selection $S_v = \{3,4,5,7\}$ =
+Dorsum, Tip, LipP, Hy --- consistent with the split of article Eq.~4
+\hbox{[D5]}.
+
+\textbf{Interpretation.} Within the published grid the rule is invisible:
+Table~\ref{tab:d5} shows exact zeros for all six published configurations,
+and the README records that ``all reference reproductions remain
+bit-identical'' (Q10, quoted in \S6). The rule bites only outside that grid
+--- an asymmetric $\delta_o \ne \delta_e$, or a different vowel on the two
+sides of a pause. Users who explore such conditions should be aware that the
+engine implements the previous-Ve anchoring, not the literal reading.
+
+\section{Why the published demonstrations are nevertheless reproduced}
+
+The audit's evidence, case by case \hbox{[AUD]}:
+\begin{itemize}\itemsep2pt\parsep0pt
+\item \textbf{Equation level.} Independent implementations of Eqs.~(1)--(4)
+agree with the engine to $\le 5\cdot10^{-15}$.
+\item \textbf{Counterfactual CO.} Substituting the article's Table~1
+coordination matrix into the engine yields identity to $\le 10^{-15}$ on all
+seven parameters: the Tip-row deviation (row~1/1b) is a pure parameter
+substitution, not an equation change.
+\item \textbf{End-to-end transformation.} The \code{big.bi} $\to$
+\code{bi.gbi} transformation is reconstructed from the article's equations
+alone to $\le 4.4\cdot10^{-15}$ on six parameters, with the published gain of
+one period $T = 160$~ms (176 $\to$ 160 steps).
+\item \textbf{Locus demonstration.} With the article's positions restored
+--- which the repository's own scripts do
+{[R \code{scripts/}\allowbreak\code{run\_locus\_trough\_demos.py:206--216}]} --- the
+measured locus slopes are 0.7028 (/b/), 0.4211 (/d/), 2.3352 (/g/ velar) and
+0.6305 (/g/ palatal), reproduced to $\le 5\cdot10^{-4}$. These are the values
+reported in the README headline table and in manual \S10.2
+\hbox{[M l.959--962]}.
+\item \textbf{Word-onset rule.} Exactly zero difference at all published
+conditions \hbox{[D5]} (\S5, Table~\ref{tab:d5}).
+\end{itemize}
+
+\begin{qbox}{README, ``Key Modifications'', item 4 --- closing sentence
+(Q10, verbatim [R])}
+\small
+``\dots with the symmetric $\delta_o = \delta_e$ the value is unchanged (the
+`big@bi' schwa demonstrations are preserved, and all reference reproductions
+remain bit-identical).''
+\end{qbox}
+
+\noindent The audit tally: 104 tests --- 91 conforming, 10 documented
+deviations (the families of \S4), 1 non-conformity (the CO Tip row), and 0
+P0-severity issues \hbox{[AUD]}. \textbf{Consequence:} the engine faithfully
+applies the article's equations; every deviation is a parameter or rule
+choice. No engine modification is warranted; the appropriate fix is
+documentation --- this supplement and the two corrigenda of \S7.
+
+\section{Corrigenda to the manual}
+
+The audit found exactly two factually wrong statements in the manual
+\hbox{[AUD]}, plus one family of wrong labels in the demonstration artifacts
+generated by the repository's own figure generator; the three corrections are
+issued below as Corrigenda~1--3. Each corrigendum gives (a) the location, (b)
+the current text or state quoted verbatim, (c) a ready-to-paste corrected
+text, and (d) the verified engine values. \emph{Application status (October
+14, 2026):} the three corrections have been applied to the manual and the
+figure labels regenerated from the engine; the quoted ``current'' texts
+refer to the state at commit \code{4a0d76290aee}.
+
+\subsection*{Corrigendum 1 --- coordination-matrix claim
+(manual \S1.2, lines 225--227)}
+
+\textbf{(b) Current text [M l.225--227], verbatim:}
+\begin{qbox}{\code{docs/manual.tex} lines 225--227 (Q8, verbatim)}
+\small
+``The CO matrix matches the article's Table~1 almost exactly; the only
+difference is the Tip parameter $c_0$: $-2.75$ in
+\code{synthSYL/constants.py} vs $-3.0$ in the article.''
+\end{qbox}
+\noindent This statement is wrong on two counts: the Tip row differs in
+\emph{two} constants, not one; and no other row differs.
+
+\textbf{(c) Ready-to-paste corrected text:}
+\begin{pastebox}{Suggested replacement for manual \S1.2, lines 225--227}
+\small
+``The CO matrix matches the article's Table~1 except for the Tip row, where
+two parameters differ: $\Omega = 0.5$ (article: 0) and $\Psi_1 = -2.75$
+(article: $-3.0$) in \code{synthSYL/constants.py}; all other rows are
+identical. The deviation is inherited from the original timit-to-Maeda
+registry and is quantified in the Differential Supplement \S4 (up to 0.70
+Maeda units on Tip for /d/, /g/; zero for /b/ and /gb/).''
+\end{pastebox}
+
+\noindent\textbf{(d) Verified engine values.}
+\code{constants.py:28} stores the Tip row as $[\Psi_1, \Omega, \Psi_2] =
+[-2.75,\;0.5,\;\pi]$ \hbox{[R]}; the article's Table~1 gives $\Omega = 0$ and
+$\Psi_1 = -3$ \hbox{[A]}; effect up to 0.70 \Mua{} on Tip for /d/, /g/, zero
+for /b/ and /gb/ \hbox{[AUD]}.
+
+\subsection*{Corrigendum 2 --- cluster-selection rule
+(manual \S10.4, table lines 1260--1273 and rule paragraph lines 1275--1280)}
+
+\textbf{(b) Current text [M l.1275--1280], verbatim:}
+\begin{qbox}{\code{docs/manual.tex} lines 1275--1280 (Q9, verbatim)}
+\small
+``Rule: when /b/ is involved in the pair, the selection vector is
+$S_c = \{1,2,3,6\}$ (article numbering; code $\{0,1,2,5\}$ = jaw, body,
+dorsum, LipH); otherwise $S_c = \{1,2,3,4\}$ (article numbering; code
+$\{0,1,2,3\}$ = jaw, body, dorsum, tip). The /g/ is systematically palatal
+when in a cluster.''
+\end{qbox}
+\noindent This is the \emph{article's} rule (\S3, quote in \S3 above),
+presented as the engine's. The Demo~4 table cells are consistent with it and
+therefore also wrong for /dg/ and /gd/ ($\{1,2,3,4\}$ is a vector the engine
+never returns for a cluster; the engine returns $\{1,2,3\}$ for both).
+\textbf{Explicit cell replacements}: /dg/ row
+\hbox{[M l.1268]} --- $S_c$ \{1,\,2,\,3,\,4\} $\to$ \{1,\,2,\,3\} and note
+``no /b/ $\to S_c{=}\{1,2,3,4\}$'' $\to$ ``engine threshold rule
+(place-index sum $> 2$)''; /gd/ row \hbox{[M l.1270]} likewise.
+
+\textbf{(c) Ready-to-paste corrected text:}
+\begin{pastebox}{Suggested replacement for the manual \S10.4 rule paragraph}
+\small
+``Engine rule (verified): the selection vector is $S_c = \{1,2,3,6\}$ (code
+$\{0,1,2,5\}$) when the sum of place indices ($b = 0$, $d = 1$, $g = 2$) is
+$\le 2$, and $S_c = \{1,2,3\}$ (code $\{0,1,2\}$) otherwise. Hence /bb/,
+/bd/, /bg/, /db/, /dd/, /gb/ use $\{1,2,3,6\}$ and /dg/, /gd/, /gg/ use
+$\{1,2,3\}$; the code vector $\{0,1,2,3\}$ is never produced for a cluster
+(it is the singleton selection of /d/ and /g/). The article's rule ---
+$\{1,2,3,6\}$ for clusters containing /b/ (e.g.\ /gb/), $\{1,2,3,4\}$
+otherwise --- differs from the engine's for the four pairs /dd/, /dg/, /gd/,
+/gg/. The engine's rule is inherited from the 2023 lineage: both original
+engines implement the same threshold rule [EXT]; the article's
+/b/-conditional rule was never implemented in the family. See Differential
+Supplement \S4, rows~4 and~4a.''
+\end{pastebox}
+
+\noindent\textbf{(d) Verified engine values.} Place indices $b{=}0$,
+$d{=}1$, $g{=}2$ \hbox{[R phonology.py:133--141]}; the rule selects
+\code{ART\_CLUSTER[0]} $=\{0,1,2,5\}$ when the sum of the two indices is
+$\le 2$ and \code{ART\_CLUSTER[1]} $=\{0,1,2\}$ otherwise
+\hbox{[R phonology.py:337--341; constants.py:89--92]}, executed on the nine
+pairs for this supplement: \{0,1,2,5\} for bb, bd, bg, db, dd, gb;
+\{0,1,2\} for dg, gd, gg (article numbering: $\{1,2,3,6\}$ and
+$\{1,2,3\}$) \hbox{[R]}. The article's rule is quoted verbatim in \S3
+\hbox{[A \S3]}. The affected utterances of the extended simulations are
+\code{adga} and \code{agda} (see Row~4b in \S4).
+
+\subsection*{Corrigendum 3 --- demonstration-figure labels
+(generator \code{run\_article\_demos.py}; manual embeds at lines 1284
+and 1291)}
+
+\textbf{(a) Location.} The demonstration figure generator
+\code{scripts/run\_article\_demos.py} hardcodes the article's labels in
+\code{CLUSTER\_INFO} (lines 91--98): the /dg/ and /gd/ entries carry
+\code{"Sc": "\{1,2,3,4\}"} with note \code{"no /b/ -> Sc=\{1,2,3,4\}"} (verbatim
+excerpt in the brief's Annex~A). These strings flow into (i)~the console log
+(line 310), (ii)~the panel titles of \code{cluster\_params.png} (line 356),
+and (iii)~the panel titles of \code{cluster\_polar.png} (line 416). The manual
+embeds both PNGs (\hbox{[M l.1284]} and \hbox{[M l.1291]}), so the printed
+Demo~4 section inherits the mislabels.
+
+\textbf{(b) Current state.} The synthesis that produced those very panels ran
+with $S_c = \{1,2,3\}$ for /dg/ and /gd/ (threshold rule; \S4, row~4, verified
+by execution). The published artifacts therefore display $S_c = \{1,2,3,4\}$
+--- a vector the engine never returns for a cluster --- next to trajectories
+that are faithful to the engine: a label/engine inconsistency inside the
+published Demo~4 artifacts. Only the labels are wrong. The spectrogram titles
+carry no $S_c$ label, and Demo~1 (/ibia/) is unaffected.
+
+\textbf{(c) Correction --- two coordinated parts.}
+\emph{Generator (maintainer action).} Option~B (recommended): derive the
+labels at runtime from \code{synthSYL.phonology.cluster\_art\_params},
+converting code indices to article numbering by $+1$, so the displayed labels
+can never drift from the engine again; keep a static note field for prose
+only. Option~A (minimal): edit the two entries to \code{"Sc": "\{1,2,3\}"} with
+note ``engine threshold rule (place-index sum $> 2$)''. Then re-run the
+generator, propagate the regenerated \code{cluster\_params.png} and
+\code{cluster\_polar.png} into \code{docs/figures/demo5/}, and rebuild the
+manual PDF. \emph{Ready-to-paste manual note (immediate documentation fix),
+to insert under the Demo~4 figures:}
+\begin{pastebox}{Suggested note under the manual Demo~4 figures}
+\small
+``Labels note. In the figures above, the $S_c$ annotations for /dg/ and /gd/
+($S_c = \{1,2,3,4\}$) are legacy labels: the synthesis runs with
+$S_c = \{1,2,3\}$ (threshold rule on the place-index sum; see the Differential
+Supplement, \S4 row~4, and Corrigendum~2). The trajectories are unaffected;
+corrected figures are regenerated by \code{scripts/run\_article\_demos.py}.''
+\end{pastebox}
+
+\textbf{(d) Verified engine values.} /dg/ and /gd/ $\to$ code $[0,1,2]
+\equiv \{1,2,3\}$ (article numbering); the four panels /bd/, /bg/, /db/,
+/gb/ already display the correct $\{1,2,3,6\}$. Panel by panel:
+
+\begin{center}
+\footnotesize
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Panel} & \textbf{Displayed label} & \textbf{Engine value} &
+\textbf{Action} \\
+\midrule
+/bd/, /bg/, /db/, /gb/ & $S_c = \{1,2,3,6\}$ & $\{1,2,3,6\}$ & none \\
+/dg/ & $S_c = \{1,2,3,4\}$ + ``no /b/'' note & $\{1,2,3\}$ & relabel \\
+/gd/ & $S_c = \{1,2,3,4\}$ + ``no /b/'' note & $\{1,2,3\}$ & relabel \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Version and provenance statement}
+
+The following block is ready to paste into the README and the manual preface:
+\begin{pastebox}{Version and provenance statement (ready to paste)}
+\small\raggedright
+\textbf{Version and provenance.} The demonstrations in this repository were
+produced with the Python engine synthSYL reworked in 2026 within
+big.bi-supplement (commit \code{4a0d76290aee},
+DOI 10.5281/zenodo.23239483), which extends the author's timit-to-Maeda
+package. The 2023 article (arXiv:2307.02299) reports demonstrations produced
+with the author's MATLAB implementation of the same model. The registry
+parameters are inherited from the engine and recalibrated by ear; they do not
+all coincide with the values published in the 2023 article --- the complete
+differential is catalogued in the Implementation Differential and Provenance
+Supplement (\code{docs/differential\_supplement.pdf}, \S4), and none of the
+differences is an equation-level change. Two choices are dated author
+rulings: the word-onset anchoring rule (2026-10-06) and
+$\mathrm{VALRECT} = 1.10$ (2026-10-07).
+\end{pastebox}
+
+\section{Reproducibility}
+
+\textbf{Environment.} Python $\ge$ 3.10 (the audit ran 3.12) with
+numpy, scipy, matplotlib and pytest; repository at commit
+\code{4a0d76290aee}; MIT license \hbox{[R]}. The commands below follow the
+audit workspace \hbox{[AUD; D5]}; steps 3--5 use the scripts
+\code{exp\_d5\_onset\_rule.py} and \code{fig\_d5.py} provided there (on
+Windows, replace \code{venv/bin/} with \code{venv\textbackslash Scripts\textbackslash} and set
+\code{BIGBI\_REPO} with \code{set}):
+\begin{quote}\small
+\begin{verbatim}
+# 1. environment
+python -m venv venv && venv/bin/pip install numpy scipy matplotlib pytest
+# 2. repository at the pinned commit
+git clone https://github.com/FBerthommier/big.bi-supplement
+cd big.bi-supplement && git checkout 4a0d76290aee
+# 3. difference-5 experiment (~10 s)   [script: audit workspace]
+BIGBI_REPO=/path/to/repo python exp_d5_onset_rule.py
+#    -> d5_results.json + d5_<case>_{code,lit}.csv (14 CSVs)
+# 4. figures
+python fig_d5.py   # -> fig_d5_bibi.png, fig_d5_bigbi.png, fig_d5_synthesis.png
+# 5. full 104-test audit suite (~10 min)
+cd tests/compliance && BIGBI_REPO=/path/to/repo python -m pytest . -q
+\end{verbatim}
+\end{quote}
+
+\textbf{Artifact inventory.} Difference-5: \code{d5\_results.json}, 14
+per-case CSVs (engine vs literal rule), three figures
+(\code{fig\_d5\_bibi.png}, \code{fig\_d5\_bigbi.png},
+\code{fig\_d5\_synthesis.png}) \hbox{[D5]}. Audit: the 104-test matrix
+(\code{compliance\_report.md}), the engine-vs-article correspondence table
+(\code{annexe\_correspondance\_}\allowbreak\code{synthsyl\_article.md}), and
+the 13-page difference-5 report
+(\code{difference5\_effect\_audit.pdf}) \hbox{[AUD]}.
+
+\textbf{Selector probe.} Every selector claim of this document is
+re-derivable from the repository alone. Run from any directory with the
+repository root in \code{sys.path}:
+\begin{quote}\small
+\begin{verbatim}
+import sys
+sys.path.insert(0, "<repository root>")
+from synthSYL.phonology import cluster_art_params
+
+def article_rule(pair):          # article S3, p. 4
+    return {1, 2, 3, 6} if "b" in pair else {1, 2, 3, 4}
+
+for p in ["bb", "bd", "bg", "db", "dd", "dg", "gb", "gd", "gg"]:
+    code = cluster_art_params(list(p))          # 0-based code indices
+    art  = sorted(i + 1 for i in code)          # article numbering (+1)
+    ref  = sorted(article_rule(p))
+    print(f"/{p}/  engine {art}  article {ref}  "
+          f"{'conform' if art == ref else 'DIVERGES'}")
+\end{verbatim}
+\end{quote}
+\noindent Expected output: \code{conform} for bb, bd, bg, db, gb (engine
+$\{1,2,3,6\}$); \code{DIVERGES} for dd (engine $\{1,2,3,6\}$) and for dg, gd,
+gg (engine $\{1,2,3\}$); the article rule answers $\{1,2,3,4\}$ for these
+four. Place-index sums ($b{=}0$, $d{=}1$, $g{=}2$): bb 0; bd 1; bg 2; db 1;
+dd 2; dg 3; gb 2; gd 3; gg 4 --- the threshold is sum $> 2$.
+
+\begin{thebibliography}{9}\small
+
+\bibitem{article}
+F.~Berthommier, ``Why can big.bi be changed to bi.gbi? A mathematical model
+of syllabification and articulatory synthesis'', arXiv:2307.02299 [eess.AS],
+July 2023 (Interspeech 2023). Cited as [A].
+
+\bibitem{repo}
+F.~Berthommier, \emph{big.bi-supplement} repository, commit
+\code{4a0d76290aee}, MIT license, DOI 10.5281/zenodo.23239483, 2026.
+\url{https://github.com/FBerthommier/big.bi-supplement}. Cited as [R].
+
+\bibitem{manual}
+F.~Berthommier, \emph{Didactic Manual: big.bi $\to$ bi.gbi articulatory
+simulation}, \code{docs/manual.pdf}, 26 pages, at the same commit. Cited as
+[M].
+
+\bibitem{audit}
+104-test compliance audit report, \code{compliance\_report.md}, October 2026.
+Cited as [AUD].
+
+\bibitem{d5}
+Difference-5 effect report, \code{difference5\_effect\_audit.pdf}, 13 pages,
+October 2026. Cited as [D5].
+
+\bibitem{ext}
+Anonymous, ``Comparative audit of consonant selection vectors
+$C \in \{$b, d, g$\}$ in Timit-to-Maeda and Syllable\_Synthesis,''
+technical synthesis for verification of reasoning, 6 pp., October 13, 2026
+(file \code{selectors\_CC\_comparison.pdf}). Cited as [EXT].
+
+\end{thebibliography}
+
+\end{document}

@@ -60,7 +60,8 @@ sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
 import polar_sync  # noqa: E402
 from synthSYL import panphon_pipeline  # noqa: E402
-from synthSYL.phonology import VOWELS_SYNTSYL, CONSONANTS_SYNTSYL  # noqa: E402
+from synthSYL.phonology import (  # noqa: E402
+    VOWELS_SYNTSYL, CONSONANTS_SYNTSYL, cluster_art_params)
 import vlam  # noqa: E402
 
 # ─────────────────────────────────────────────────────────────────────
@@ -87,14 +88,25 @@ MAEDA_LABELS = ["Jaw", "Body", "Dorsum", "Tip", "LipP", "LipH", "Hy"]
 MAEDA_COLORS = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728",
                 "#9467bd", "#8c564b", "#e377c2"]
 
-# Consonant cluster info (article §3)
+def _article_sc(cluster: str) -> str:
+    """Engine-derived Sc label, article numbering (code index + 1).
+
+    Derived at runtime from synthSYL.phonology.cluster_art_params so the
+    displayed labels can never drift from the engine (Differential
+    Supplement, Corrigendum 3, option B)."""
+    code = cluster_art_params(list(cluster))
+    return "{" + ",".join(str(i + 1) for i in code) + "}"
+
+
+# Consonant cluster info — Sc labels engine-derived at runtime (Corrigendum
+# 3, option B); the note field is static prose only.
 CLUSTER_INFO = {
-    "bd": {"Sc": "{1,2,3,6}", "note": "/b/ involved -> Sc={1,2,3,6}"},
-    "bg": {"Sc": "{1,2,3,6}", "note": "/b/ involved, /g/ palatal"},
-    "db": {"Sc": "{1,2,3,6}", "note": "/b/ involved -> Sc={1,2,3,6}"},
-    "dg": {"Sc": "{1,2,3,4}", "note": "no /b/ -> Sc={1,2,3,4}"},
-    "gb": {"Sc": "{1,2,3,6}", "note": "/b/ involved, /g/ palatal"},
-    "gd": {"Sc": "{1,2,3,4}", "note": "no /b/ -> Sc={1,2,3,4}"},
+    "bd": {"Sc": _article_sc("bd"), "note": "/b/ involved -> Sc={1,2,3,6}"},
+    "bg": {"Sc": _article_sc("bg"), "note": "/b/ involved, /g/ palatal"},
+    "db": {"Sc": _article_sc("db"), "note": "/b/ involved -> Sc={1,2,3,6}"},
+    "dg": {"Sc": _article_sc("dg"), "note": "engine threshold rule (place-index sum > 2)"},
+    "gb": {"Sc": _article_sc("gb"), "note": "/b/ involved, /g/ palatal"},
+    "gd": {"Sc": _article_sc("gd"), "note": "engine threshold rule (place-index sum > 2)"},
 }
 
 
