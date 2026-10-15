@@ -35,6 +35,13 @@ links that work directly on GitHub.
   reproduction evidence, three corrigenda to the manual, and the
   version/provenance statement
   (source: [docs/differential_supplement.tex](docs/differential_supplement.tex)).
+- **[Independent conformity attestation (PDF)](docs/conformity_attestation.pdf)** —
+  Certificate of Systematic Verification and Conformity
+  (BBICERT-2026-10-15): 104 tests re-executed on commit `4a0d76290aee`
+  (104 passed), item-by-item attestation on two axes (conformity to
+  arXiv:2307.02299 and lineage identity to the 2023 engines); overall
+  verdict **CONFORM WITH DOCUMENTED DEVIATIONS** (92 conform / 10
+  documented deviations / 1 non-conform / 1 not applicable).
 
 **▶ Interactive demonstrations** (self-contained HTML: embedded dual
 video — sagittal tract | polar plot — with chapters, captions and
@@ -165,6 +172,7 @@ bigbi-demos/
 │   ├── manual.pdf             # Compiled PDF (29 pages)
 │   ├── differential_supplement.tex  # Implementation differential & provenance (source)
 │   ├── differential_supplement.pdf  # Implementation differential & provenance (13 pages)
+│   ├── conformity_attestation.pdf   # Independent conformity certificate (18 pages, Oct. 15, 2026)
 │   ├── figures/article_format/  # Figures 1/3/4 + supplement in the article's format
 │   └── figures/               # Simulation figures
 └── examples/                  # Quick demos
